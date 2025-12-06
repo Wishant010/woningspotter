@@ -8,7 +8,8 @@
       "title": "Plaats / regio",
       "type": "string",
       "description": "Bijv. amsterdam, utrecht, noord-holland. Wordt gebruikt in de URL voor Funda en Pararius.",
-      "default": "amsterdam"
+      "default": "amsterdam",
+      "editor": "textfield"
     },
     "paginas": {
       "title": "Aantal pagina's per platform",
@@ -16,7 +17,8 @@
       "description": "Hoeveel pagina's per platform (Funda, Pararius) moeten worden gescrapet.",
       "minimum": 1,
       "maximum": 100,
-      "default": 5
+      "default": 5,
+      "editor": "number"
     },
     "platforms": {
       "title": "Platforms om te scrapen",
@@ -29,13 +31,15 @@
       },
       "uniqueItems": true,
       "minItems": 1,
-      "default": ["FUNDA", "PARARIUS"]
+      "default": ["FUNDA", "PARARIUS"],
+      "editor": "select"
     },
     "headless": {
       "title": "Headless browser",
       "type": "boolean",
       "description": "Gebruik een headless browser (true) of zichtbare browser (false). Op Apify is headless sterk aangeraden.",
-      "default": true
+      "default": true,
+      "editor": "checkbox"
     }
   },
   "required": ["plaats"]
