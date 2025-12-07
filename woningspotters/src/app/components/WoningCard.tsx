@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Woning } from '@/types';
 import { MapPin, Maximize, BedDouble, ExternalLink, Zap } from 'lucide-react';
 
@@ -9,6 +10,14 @@ interface WoningCardProps {
 }
 
 export function WoningCard({ woning, index = 0 }: WoningCardProps) {
+  const router = useRouter();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Sla de woning data op in sessionStorage zodat de detail pagina het kan ophalen
+    sessionStorage.setItem(`woning_${woning.id}`, JSON.stringify(woning));
+    router.push(`/woning/${woning.id}`);
+  };
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('nl-NL', {
       style: 'currency',
@@ -28,11 +37,9 @@ export function WoningCard({ woning, index = 0 }: WoningCardProps) {
   };
 
   return (
-    <a
-      href={woning.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="glass-strong rounded-2xl overflow-hidden card-hover block animate-fade-in opacity-0 group shadow-xl border-2 border-white/20"
+    <div
+      onClick={handleClick}
+      className="glass-strong rounded-2xl overflow-hidden card-hover block animate-fade-in opacity-0 group shadow-xl border-2 border-white/20 cursor-pointer"
       style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
     >
       {/* Image container */}
@@ -122,7 +129,7 @@ export function WoningCard({ woning, index = 0 }: WoningCardProps) {
           </div>
         )}
       </div>
-    </a>
+    </div>
   );
 }
 

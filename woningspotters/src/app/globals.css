@@ -11,8 +11,8 @@
   --accent: #FF7A00;
   --accent-dark: #E66A00;
   --dark: #1a1a2e;
-  --dark-secondary: #16213e;
-  --dark-tertiary: #0f3460;
+  --dark-secondary: #1a1a2e;
+  --dark-tertiary: #1a1a2e;
 }
 
 * {
@@ -26,8 +26,7 @@ html {
 
 body {
   font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, var(--dark) 0%, var(--dark-secondary) 50%, var(--dark-tertiary) 100%);
-  background-attachment: fixed;
+  background: #1a1a2e;
   min-height: 100vh;
   color: #fff;
   -webkit-font-smoothing: antialiased;

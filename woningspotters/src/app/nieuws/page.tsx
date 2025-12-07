@@ -21,10 +21,10 @@ const newsArticles: NewsArticle[] = [
   {
     id: '1',
     title: 'Hypotheekrente daalt verder: wat betekent dit voor kopers?',
-    excerpt: 'De gemiddelde hypotheekrente is deze maand opnieuw gedaald naar 3,8%. Experts verwachten dat deze trend zich voortzet in 2025, wat goed nieuws is voor starters op de woningmarkt.',
+    excerpt: 'De gemiddelde hypotheekrente is deze maand opnieuw gedaald naar 3,6%. Experts verwachten dat deze trend zich voortzet, wat goed nieuws is voor starters op de woningmarkt.',
     category: 'Hypotheek',
     categoryIcon: Landmark,
-    date: '6 dec 2024',
+    date: '7 dec 2025',
     readTime: '4 min',
     image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=500&fit=crop',
     featured: true,
@@ -32,70 +32,70 @@ const newsArticles: NewsArticle[] = [
   {
     id: '2',
     title: 'Nieuwe wet: makelaars moeten energielabel tonen bij bezichtiging',
-    excerpt: 'Vanaf januari 2025 zijn makelaars verplicht om het energielabel prominent te tonen tijdens bezichtigingen. Dit moet kopers helpen een betere inschatting te maken van energiekosten.',
+    excerpt: 'Sinds januari zijn makelaars verplicht om het energielabel prominent te tonen tijdens bezichtigingen. Dit moet kopers helpen een betere inschatting te maken van energiekosten.',
     category: 'Regelgeving',
     categoryIcon: Gavel,
-    date: '5 dec 2024',
+    date: '6 dec 2025',
     readTime: '3 min',
     image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=500&fit=crop',
   },
   {
     id: '3',
-    title: 'Huizenprijzen stijgen met 5% in laatste kwartaal',
-    excerpt: 'Het CBS meldt een stijging van 5% in huizenprijzen vergeleken met vorig jaar. Vooral in de Randstad blijven de prijzen stijgen door aanhoudende krapte op de markt.',
+    title: 'Huizenprijzen stijgen met 4,2% in laatste kwartaal',
+    excerpt: 'Het CBS meldt een stijging van 4,2% in huizenprijzen vergeleken met vorig jaar. Vooral in de Randstad blijven de prijzen stijgen door aanhoudende krapte op de markt.',
     category: 'Marktanalyse',
     categoryIcon: TrendingUp,
-    date: '4 dec 2024',
+    date: '5 dec 2025',
     readTime: '5 min',
     image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800&h=500&fit=crop',
   },
   {
     id: '4',
-    title: 'Amsterdam bouwt 10.000 nieuwe woningen in 2025',
-    excerpt: 'De gemeente Amsterdam heeft plannen aangekondigd voor de bouw van 10.000 nieuwe woningen, waarvan 40% sociale huur. De eerste projecten starten in het voorjaar.',
+    title: 'Amsterdam bouwt 12.000 nieuwe woningen in 2026',
+    excerpt: 'De gemeente Amsterdam heeft plannen aangekondigd voor de bouw van 12.000 nieuwe woningen, waarvan 40% sociale huur. De eerste projecten starten in het voorjaar.',
     category: 'Nieuwbouw',
     categoryIcon: Building2,
-    date: '3 dec 2024',
+    date: '4 dec 2025',
     readTime: '4 min',
     image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=500&fit=crop',
   },
   {
     id: '5',
-    title: 'Tips voor het kopen van je eerste woning in 2025',
-    excerpt: 'Ben je van plan om in 2025 je eerste woning te kopen? Wij geven je de beste tips om goed voorbereid de woningmarkt op te gaan en je kansen te vergroten.',
+    title: 'Tips voor het kopen van je eerste woning in 2026',
+    excerpt: 'Ben je van plan om volgend jaar je eerste woning te kopen? Wij geven je de beste tips om goed voorbereid de woningmarkt op te gaan en je kansen te vergroten.',
     category: 'Tips',
     categoryIcon: Home,
-    date: '2 dec 2024',
+    date: '3 dec 2025',
     readTime: '6 min',
     image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=500&fit=crop',
   },
   {
     id: '6',
-    title: 'NVM: Aantal woningverkopen stijgt met 15%',
-    excerpt: 'De Nederlandse Vereniging van Makelaars meldt een stijging van 15% in het aantal woningverkopen. De toegenomen activiteit wordt toegeschreven aan dalende rentes.',
+    title: 'NVM: Aantal woningverkopen stijgt met 12%',
+    excerpt: 'De Nederlandse Vereniging van Makelaars meldt een stijging van 12% in het aantal woningverkopen. De toegenomen activiteit wordt toegeschreven aan dalende rentes.',
     category: 'Marktanalyse',
     categoryIcon: TrendingUp,
-    date: '1 dec 2024',
+    date: '2 dec 2025',
     readTime: '3 min',
     image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=500&fit=crop',
   },
   {
     id: '7',
-    title: 'Verduurzaming: subsidies voor woningisolatie verlengd',
-    excerpt: 'De overheid heeft besloten de subsidieregeling voor woningisolatie te verlengen tot 2026. Huiseigenaren kunnen tot €5.000 subsidie aanvragen voor isolatiemaatregelen.',
+    title: 'Verduurzaming: subsidies voor woningisolatie verlengd tot 2027',
+    excerpt: 'De overheid heeft besloten de subsidieregeling voor woningisolatie te verlengen tot 2027. Huiseigenaren kunnen tot €6.000 subsidie aanvragen voor isolatiemaatregelen.',
     category: 'Regelgeving',
     categoryIcon: Gavel,
-    date: '30 nov 2024',
+    date: '1 dec 2025',
     readTime: '4 min',
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop',
   },
   {
     id: '8',
-    title: 'Rotterdam investeert €500 miljoen in betaalbare woningen',
+    title: 'Rotterdam investeert €600 miljoen in betaalbare woningen',
     excerpt: 'De gemeente Rotterdam maakt een grote investering in betaalbare woningen. Het plan omvat renovatie van bestaande woningen en nieuwbouw in verschillende wijken.',
     category: 'Nieuwbouw',
     categoryIcon: Building2,
-    date: '28 nov 2024',
+    date: '29 nov 2025',
     readTime: '5 min',
     image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=500&fit=crop',
   },
@@ -111,13 +111,19 @@ const categories = [
 ];
 
 export default function NieuwsPage() {
-  const featuredArticle = newsArticles.find((a) => a.featured);
-  const regularArticles = newsArticles.filter((a) => !a.featured);
-
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState('');
+
+  // Filter articles based on selected category
+  const filteredArticles = selectedCategory === 'all'
+    ? newsArticles
+    : newsArticles.filter((a) => a.category === selectedCategory);
+
+  const featuredArticle = filteredArticles.find((a) => a.featured);
+  const regularArticles = filteredArticles.filter((a) => !a.featured);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,25 +154,26 @@ export default function NieuwsPage() {
 
   return (
     <PageTransition>
-      <div className="px-4 py-8 pb-16">
-        <div className="max-w-6xl mx-auto">
+      <div className="px-4 md:px-6 py-8 md:py-12 pb-16">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-3">
+          <div className="text-center mb-10 md:mb-14">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold gradient-text mb-4">
               Nieuws
             </h1>
-            <p className="text-white/50 max-w-xl mx-auto">
+            <p className="text-white/50 text-base md:text-lg lg:text-xl max-w-2xl mx-auto">
               Het laatste nieuws over de woningmarkt, regelgeving en trends
             </p>
           </div>
 
           {/* Categories */}
-          <div className="flex flex-wrap gap-2 justify-center mb-10">
+          <div className="flex flex-wrap gap-2 md:gap-3 justify-center mb-10 md:mb-12">
             {categories.map((cat) => (
               <button
                 key={cat.value}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  cat.value === 'all'
+                onClick={() => setSelectedCategory(cat.value)}
+                className={`px-5 py-2.5 md:px-6 md:py-3 rounded-xl text-sm md:text-base font-medium transition-all ${
+                  selectedCategory === cat.value
                     ? 'btn-gradient'
                     : 'bg-white/5 hover:bg-white/10 text-white/70 hover:text-white'
                 }`}

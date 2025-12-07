@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1a2e; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+        <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background: #1a1a2e; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
           <!-- Header -->
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">

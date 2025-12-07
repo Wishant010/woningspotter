@@ -70,17 +70,17 @@ export function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-14">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              <Image src="/logo.svg" alt="WoningSpotters" width={32} height={32} priority />
+        <div className="flex items-center h-16">
+          {/* Logo - Left */}
+          <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center">
+              <Image src="/logo.svg" alt="WoningSpotters" width={48} height={48} priority />
             </div>
-            <span className="font-bold text-base">WoningSpotters</span>
+            <span className="font-bold text-xl hidden sm:inline">WoningSpotters</span>
           </Link>
 
           {/* Center Navigation Links */}
-          <div className="flex items-center gap-1">
+          <div className="flex-1 flex items-center justify-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -103,7 +103,7 @@ export function Navbar() {
           </div>
 
           {/* Right side - Auth */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {/* Favorites link (always visible) */}
             <Link
               href="/favorites"

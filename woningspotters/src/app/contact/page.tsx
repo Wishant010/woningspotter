@@ -192,7 +192,7 @@ export default function ContactPage() {
                   <h3 className="font-medium">Betalingen</h3>
                 </div>
                 <p className="text-white/50 text-sm">
-                  Vragen over facturering? Mail naar billing@woningspotters.nl voor snelle hulp.
+                  Vragen over facturering? Mail naar info@woningspotter.nl voor snelle hulp.
                 </p>
               </div>
             </div>
@@ -201,42 +201,45 @@ export default function ContactPage() {
           {/* Contact Form & Info */}
           <section id="contact-form" className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Contact info */}
-            <div id="contact-info" className="space-y-4">
+            <div id="contact-info" className="flex flex-col">
               <h3 className="font-bold text-lg mb-4">Contactgegevens</h3>
 
-              <div className="glass rounded-xl p-5 hover:bg-white/10 transition-colors">
-                <div className="w-10 h-10 btn-gradient rounded-lg flex items-center justify-center mb-3">
-                  <Mail className="w-5 h-5 text-white" />
-                </div>
-                <h4 className="font-medium mb-1">Email</h4>
-                <p className="text-white/50 text-sm">info@woningspotters.nl</p>
-                <p className="text-white/50 text-sm">support@woningspotters.nl</p>
-              </div>
+              <div className="glass rounded-xl p-5 hover:bg-white/10 transition-colors flex-1 flex flex-col justify-between">
+                <div className="space-y-6">
+                  <div>
+                    <div className="w-10 h-10 btn-gradient rounded-lg flex items-center justify-center mb-3">
+                      <Mail className="w-5 h-5 text-white" />
+                    </div>
+                    <h4 className="font-medium mb-1">Email</h4>
+                    <p className="text-white/50 text-sm">info@woningspotter.nl</p>
+                  </div>
 
-              <div className="glass rounded-xl p-5 hover:bg-white/10 transition-colors">
-                <div className="w-10 h-10 btn-gradient rounded-lg flex items-center justify-center mb-3">
-                  <Phone className="w-5 h-5 text-white" />
-                </div>
-                <h4 className="font-medium mb-1">Telefoon</h4>
-                <p className="text-white/50 text-sm">+31 20 123 4567</p>
-                <p className="text-white/40 text-xs mt-1">Ma-Vr: 9:00 - 17:00</p>
-              </div>
+                  <div>
+                    <div className="w-10 h-10 btn-gradient rounded-lg flex items-center justify-center mb-3">
+                      <Phone className="w-5 h-5 text-white" />
+                    </div>
+                    <h4 className="font-medium mb-1">Telefoon</h4>
+                    <p className="text-white/50 text-sm">+31 20 123 4567</p>
+                    <p className="text-white/40 text-xs mt-1">Ma-Vr: 9:00 - 17:00</p>
+                  </div>
 
-              <div className="glass rounded-xl p-5 hover:bg-white/10 transition-colors">
-                <div className="w-10 h-10 btn-gradient rounded-lg flex items-center justify-center mb-3">
-                  <MapPin className="w-5 h-5 text-white" />
+                  <div>
+                    <div className="w-10 h-10 btn-gradient rounded-lg flex items-center justify-center mb-3">
+                      <MapPin className="w-5 h-5 text-white" />
+                    </div>
+                    <h4 className="font-medium mb-1">Adres</h4>
+                    <p className="text-white/50 text-sm">Herengracht 100</p>
+                    <p className="text-white/50 text-sm">1015 BS Amsterdam</p>
+                  </div>
                 </div>
-                <h4 className="font-medium mb-1">Adres</h4>
-                <p className="text-white/50 text-sm">Herengracht 100</p>
-                <p className="text-white/50 text-sm">1015 BS Amsterdam</p>
               </div>
             </div>
 
             {/* Contact form */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 flex flex-col">
               <h3 className="font-bold text-lg mb-4">Stuur ons een bericht</h3>
 
-              <div className="glass rounded-xl p-6">
+              <div className="glass rounded-xl p-6 flex-1">
                 {isSubmitted ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center">

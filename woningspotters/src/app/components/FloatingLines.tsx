@@ -59,7 +59,7 @@ uniform int lineGradientCount;
 
 const vec3 BLACK = vec3(0.0);
 const vec3 PINK  = vec3(255.0, 122.0, 0.0) / 255.0;  // #FF7A00 (orange)
-const vec3 BLUE  = vec3(15.0, 52.0, 96.0) / 255.0;   // #0f3460
+const vec3 DARK  = vec3(26.0, 26.0, 46.0) / 255.0;   // #1a1a2e
 
 mat2 rotate(float r) {
   return mat2(cos(r), sin(r), -sin(r), cos(r));
@@ -71,7 +71,7 @@ vec3 background_color(vec2 uv) {
   float y = sin(uv.x - 0.2) * 0.3 - 0.1;
   float m = uv.y - y;
 
-  col += mix(BLUE, BLACK, smoothstep(0.0, 1.0, abs(m)));
+  col += mix(DARK, BLACK, smoothstep(0.0, 1.0, abs(m)));
   col += mix(PINK, BLACK, smoothstep(0.0, 1.0, abs(m - 0.8)));
   return col * 0.5;
 }
@@ -105,9 +105,9 @@ float wave(vec2 uv, float offset, vec2 screenUv, vec2 mouseUv, bool shouldBend) 
   float time = iTime * animationSpeed;
 
   float x_offset   = offset;
-  float x_movement = time * 0.1;
-  float amp        = sin(offset + time * 0.2) * 0.3;
-  float y          = sin(uv.x + x_offset + x_movement) * amp;
+  float x_movement = time * 0.03;
+  float amp        = sin(offset * 0.5 + time * 0.08) * 0.2 + 0.2;
+  float y          = sin(uv.x * 0.6 + x_offset + x_movement) * amp;
 
   if (shouldBend) {
     vec2 d = screenUv - mouseUv;
@@ -254,14 +254,14 @@ function hexToVec3(hex: string): Vector3 {
 }
 
 export default function FloatingLines({
-  linesGradient = ['#FF7A00', '#2B7CB3', '#0f3460'],
+  linesGradient = ['#FF7A00', '#2B7CB3', '#1a1a2e'],
   enabledWaves = ['top', 'middle', 'bottom'],
   lineCount = [6],
   lineDistance = [5],
   topWavePosition,
   middleWavePosition,
   bottomWavePosition = { x: 2.0, y: -0.7, rotate: -1 },
-  animationSpeed = 0.5,
+  animationSpeed = 0.3,
   interactive = true,
   bendRadius = 5.0,
   bendStrength = -0.5,
