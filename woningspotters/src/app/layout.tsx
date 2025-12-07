@@ -35,7 +35,7 @@ export default function RootLayout({
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: consentDefaultScript }}
         />
-        {/* 2. Google Tag Manager - loads AFTER consent defaults */}
+        {/* 2. Google Tag Manager */}
         <Script
           id="gtm-script"
           strategy="afterInteractive"
@@ -49,7 +49,7 @@ export default function RootLayout({
             src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
             height="0"
             width="0"
-            className="gtm-iframe-hidden"
+            style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
 

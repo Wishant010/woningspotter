@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { GTM_ID } from '../gtm';
 
 // Declare gtag function type
 declare global {
@@ -32,52 +31,35 @@ export default function CookieConsent() {
     analytics_storage: 'denied',
   });
 
-  // Initialize gtag function
-  useEffect(() => {
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = function gtag() {
-      window.dataLayer.push(arguments);
-    };
-  }, []);
-
   // Check for existing consent on mount
   useEffect(() => {
+    // Ensure gtag is available
+    if (typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || [];
+      if (!window.gtag) {
+        window.gtag = function gtag() {
+          window.dataLayer.push(arguments);
+        };
+      }
+    }
+
     const savedConsent = localStorage.getItem(CONSENT_COOKIE_NAME);
 
     if (savedConsent) {
       try {
         const parsedConsent = JSON.parse(savedConsent) as ConsentSettings;
         setConsent(parsedConsent);
+        // Update GTM with saved consent
         updateGtagConsent(parsedConsent);
       } catch {
+        // Invalid saved consent, show banner
         setShowBanner(true);
-        setDefaultConsent();
       }
     } else {
+      // No consent saved, show banner
       setShowBanner(true);
-      setDefaultConsent();
     }
   }, []);
-
-  // Set default consent state (denied for EU compliance)
-  const setDefaultConsent = () => {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('consent', 'default', {
-        'ad_storage': 'denied',
-        'ad_user_data': 'denied',
-        'ad_personalization': 'denied',
-        'analytics_storage': 'denied',
-        'wait_for_update': 500,
-        'region': ['BE', 'BG', 'CZ', 'DK', 'DE', 'EE', 'IE', 'EL', 'ES', 'FR', 'HR', 'IT', 'CY', 'LV', 'LT', 'LU', 'HU', 'MT', 'NL', 'AT', 'PL', 'PT', 'RO', 'SI', 'SK', 'FI', 'SE', 'GB', 'IS', 'LI', 'NO', 'CH']
-      });
-
-      // Enable URL passthrough for better measurement when cookies are denied
-      window.gtag('set', 'url_passthrough', true);
-
-      // Redact ads data when ad_storage is denied
-      window.gtag('set', 'ads_data_redaction', true);
-    }
-  };
 
   // Update consent in Google Tag Manager
   const updateGtagConsent = (settings: ConsentSettings) => {
