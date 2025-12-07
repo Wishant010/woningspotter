@@ -80,7 +80,25 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- Newsletter subscribers table
+create table if not exists public.newsletter_subscribers (
+  id uuid default uuid_generate_v4() primary key,
+  email text unique not null,
+  subscribed_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  is_active boolean default true
+);
+
+-- Newsletter subscribers policies (anyone can subscribe)
+alter table public.newsletter_subscribers enable row level security;
+
+create policy "Anyone can subscribe to newsletter" on public.newsletter_subscribers
+  for insert with check (true);
+
+create policy "Users can view own subscription" on public.newsletter_subscribers
+  for select using (true);
+
 -- Indexes for better performance
 create index if not exists favorites_user_id_idx on public.favorites(user_id);
 create index if not exists search_history_user_id_idx on public.search_history(user_id);
 create index if not exists search_history_created_at_idx on public.search_history(created_at desc);
+create index if not exists newsletter_email_idx on public.newsletter_subscribers(email);

@@ -3,17 +3,9 @@
 
 """
 Huizen-scraper voor Apify (Playwright + Python)
-
-- Scraped Funda (incl. detailpagina's voor aantal kamers).
-- Scraped Pararius (alleen listing, geen detail voor nu).
-- Ontworpen voor Apify Actor:
-    * Leest input uit Actor input (INPUT_SCHEMA.json).
-    * Schrijft resultaten naar Apify Dataset (CSV/JSON downloadbaar).
-
-Benodigdheden (staan in requirements.txt):
-    apify
-    playwright
-    beautifulsoup4
+- Met Apify Proxy ondersteuning
+- Cookie consent handling
+- Stealth mode
 """
 
 import asyncio
@@ -26,8 +18,6 @@ from apify import Actor
 from playwright.async_api import async_playwright, Page
 
 
-# ===================== Datamodel =====================
-
 @dataclass
 class Woning:
     titel: str
@@ -38,33 +28,56 @@ class Woning:
     oppervlakte: str
     kamers: str
     url: str
-    platform: str  # "Funda" of "Pararius"
+    platform: str
 
-
-# ===================== Scraper =====================
 
 class PlaywrightScraper:
     def __init__(self, page: Page):
         self.page = page
         self.woningen: List[Woning] = []
 
-    # ---------- Helpers ----------
-
     @staticmethod
     def _parse_postcode_plaats(tekst: str) -> tuple[str, str]:
-        """
-        Probeert uit een string een NL-postcode + plaatsnaam te halen.
-        Voorbeeld: '1083 HH Amsterdam'
-        """
         m = re.search(r"(\d{4}\s?[A-Z]{2})\s+(.+)", tekst)
         if m:
             return m.group(1), m.group(2)
         return "", ""
 
     async def _push_woning(self, woning: Woning):
-        """Voeg woning toe aan lijst én push naar Apify dataset."""
         self.woningen.append(woning)
         await Actor.push_data(asdict(woning))
+
+    async def _handle_cookie_consent(self):
+        """Accepteer cookies als de banner verschijnt."""
+        log = Actor.log
+        try:
+            # Wacht kort op cookie banner
+            await self.page.wait_for_timeout(2000)
+            
+            # Probeer verschillende cookie accept knoppen
+            selectors = [
+                "button:has-text('Accepteren')",
+                "button:has-text('Akkoord')",
+                "button:has-text('Accept')",
+                "button:has-text('Alle cookies accepteren')",
+                "[data-testid='accept-cookies']",
+                "#accept-cookies",
+                ".cookie-accept",
+                "button[id*='accept']",
+            ]
+            
+            for selector in selectors:
+                try:
+                    button = self.page.locator(selector).first
+                    if await button.is_visible(timeout=1000):
+                        await button.click()
+                        log.info("   Cookie consent geaccepteerd")
+                        await self.page.wait_for_timeout(1000)
+                        return
+                except:
+                    continue
+        except Exception as e:
+            log.debug(f"   Geen cookie banner gevonden: {e}")
 
     # ===================== FUNDA =====================
 
@@ -83,6 +96,14 @@ class PlaywrightScraper:
 
             try:
                 await self.page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+                
+                # Handle cookies op eerste pagina
+                if pagina == 1:
+                    await self._handle_cookie_consent()
+                
+                # Wacht op content
+                await self.page.wait_for_timeout(3000)
+                
             except Exception as e:
                 log.warning(f"Fout bij laden Funda-pagina {pagina}: {e}")
                 continue
@@ -90,11 +111,15 @@ class PlaywrightScraper:
             html = await self.page.content()
             soup = BeautifulSoup(html, "html.parser")
 
+            # Debug: toon pagina titel
+            title = soup.find("title")
+            log.info(f"   Pagina titel: {title.get_text() if title else 'geen'}")
+
             # Alle links uit de pagina
             links = [a.get("href", "") for a in soup.find_all("a", href=True)]
 
             # Filter: funda detail-links
-            detail_links = [href for href in links if "/detail/koop/" in href]
+            detail_links = [href for href in links if "/detail/koop/" in href or "/koop/" in href and "/huis-" in href]
 
             # Uniek maken, absolute URLs
             unieke_links: List[str] = []
@@ -107,6 +132,10 @@ class PlaywrightScraper:
                 else:
                     continue
 
+                # Skip non-detail links
+                if "zoeken" in href_full or "kaart" in href_full:
+                    continue
+
                 if href_full not in seen:
                     seen.add(href_full)
                     unieke_links.append(href_full)
@@ -114,10 +143,12 @@ class PlaywrightScraper:
             log.info(f"   {len(unieke_links)} unieke detail-links op pagina {pagina}")
 
             count_voordat = len(self.woningen)
-            for detail_url in unieke_links:
+            for detail_url in unieke_links[:15]:  # Max 15 per pagina om snelheid te houden
                 woning = await self._scrape_funda_detail(detail_url)
                 if woning:
                     await self._push_woning(woning)
+                # Kleine pauze tussen requests
+                await self.page.wait_for_timeout(1500)
 
             nieuw = len(self.woningen) - count_voordat
             log.info(f"   >>> {nieuw} woningen verzameld van Funda pagina {pagina}")
@@ -126,10 +157,10 @@ class PlaywrightScraper:
         log.info(f"TOTAAL Funda: {totaal_funda} woningen")
 
     async def _scrape_funda_detail(self, url: str) -> Optional[Woning]:
-        """Haalt detail-data op, incl. aantal kamers en oppervlakte."""
         log = Actor.log
         try:
             await self.page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+            await self.page.wait_for_timeout(2000)
         except Exception as e:
             log.warning(f"   Fout bij openen Funda detail: {url} -> {e}")
             return None
@@ -138,12 +169,12 @@ class PlaywrightScraper:
         soup = BeautifulSoup(html, "html.parser")
 
         # Titel
-        titel_el = soup.select_one("h1") or soup.select_one("h1.object-header__title")
+        titel_el = soup.select_one("h1")
         titel = titel_el.get_text(strip=True) if titel_el else ""
 
-        # Prijs (eerste tekst met € erin)
+        # Prijs
         prijs = ""
-        prijs_el = soup.find(string=re.compile(r"€\s*\d"))
+        prijs_el = soup.find(string=re.compile(r"€\s*[\d\.,]+"))
         if prijs_el:
             prijs = prijs_el.strip()
 
@@ -152,13 +183,13 @@ class PlaywrightScraper:
         postcode = ""
         plaats = ""
 
-        sub = soup.select_one("h2, .object-header__subtitle")
+        sub = soup.select_one("h2, .object-header__subtitle, [class*='subtitle']")
         if sub:
             sub_txt = " ".join(sub.get_text(" ", strip=True).split())
             postcode, plaats = self._parse_postcode_plaats(sub_txt)
             adres = sub_txt
 
-        # Kenmerken (oppervlakte, kamers)
+        # Kenmerken
         oppervlakte = ""
         kamers = ""
 
@@ -169,15 +200,18 @@ class PlaywrightScraper:
                 continue
             value = dd.get_text(" ", strip=True)
 
-            if "Aantal kamers" in label or label == "Kamers":
+            if "kamers" in label.lower():
                 kamers = value
-
-            if (
-                "Gebruiksoppervlakte wonen" in label
-                or "Woonoppervlakte" in label
-                or label == "Wonen"
-            ):
+            if "oppervlakte" in label.lower() or "wonen" in label.lower():
                 oppervlakte = value
+
+        # Alternatief: zoek in spans/divs met class namen
+        if not oppervlakte:
+            opp_el = soup.find(string=re.compile(r"\d+\s*m²"))
+            if opp_el:
+                oppervlakte = opp_el.strip()
+
+        log.info(f"   ✓ {titel[:40]}... - {prijs}")
 
         return Woning(
             titel=titel or adres or url,
@@ -194,10 +228,6 @@ class PlaywrightScraper:
     # ===================== PARARIUS =====================
 
     async def scrape_pararius(self, plaats: str, paginas: int):
-        """
-        Simpele listing-scraper voor Pararius.
-        (Nog geen extra detail-bezoek / kamers.)
-        """
         log = Actor.log
         log.info(f"=== Scraping Pararius voor {plaats} ===")
 
@@ -213,6 +243,12 @@ class PlaywrightScraper:
 
             try:
                 await self.page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+                
+                if pagina == 1:
+                    await self._handle_cookie_consent()
+                
+                await self.page.wait_for_timeout(3000)
+                
             except Exception as e:
                 log.warning(f"   Fout bij laden Pararius-pagina {pagina}: {e}")
                 break
@@ -220,8 +256,19 @@ class PlaywrightScraper:
             html = await self.page.content()
             soup = BeautifulSoup(html, "html.parser")
 
-            # Kaarten / resultaten
-            cards = soup.select("section.search-list__item, article")
+            # Debug
+            title = soup.find("title")
+            log.info(f"   Pagina titel: {title.get_text() if title else 'geen'}")
+
+            # Zoek listings
+            cards = soup.select("li.search-list__item--listing, section.listing-search-item, article, .listing-search-item")
+            
+            if not cards:
+                # Alternatieve selector
+                cards = soup.find_all("a", href=re.compile(r"/koopwoningen/.+/[a-z]"))
+                
+            log.info(f"   Gevonden kaarten: {len(cards)}")
+
             if not cards:
                 log.info("   Geen kaarten gevonden; einde resultaten of geblokkeerd.")
                 break
@@ -229,42 +276,67 @@ class PlaywrightScraper:
             count_voordat = len(self.woningen)
 
             for card in cards:
-                a = card.find("a", href=True)
-                if not a:
+                try:
+                    # Link vinden
+                    if card.name == "a":
+                        a = card
+                    else:
+                        a = card.find("a", href=True)
+                    
+                    if not a:
+                        continue
+
+                    href = a.get("href", "")
+                    if not href or "javascript" in href:
+                        continue
+                        
+                    if href.startswith("/"):
+                        href = "https://www.pararius.nl" + href
+
+                    # Skip non-listing links
+                    if "/koopwoningen/" not in href:
+                        continue
+
+                    titel = a.get_text(strip=True)[:100]
+
+                    # Prijs zoeken
+                    prijs = ""
+                    prijs_el = card.find(string=re.compile(r"€\s*[\d\.,]+"))
+                    if prijs_el:
+                        prijs = prijs_el.strip()
+
+                    # Oppervlakte zoeken
+                    opp = ""
+                    opp_el = card.find(string=re.compile(r"\d+\s*m²"))
+                    if opp_el:
+                        opp = opp_el.strip()
+
+                    woning = Woning(
+                        titel=titel or href,
+                        prijs=prijs,
+                        adres="",
+                        postcode="",
+                        plaats=plaats.capitalize(),
+                        oppervlakte=opp,
+                        kamers="",
+                        url=href,
+                        platform="Pararius",
+                    )
+                    await self._push_woning(woning)
+                except Exception as e:
+                    log.debug(f"   Error parsing card: {e}")
                     continue
-
-                href = a["href"]
-                if href.startswith("/"):
-                    href = "https://www.pararius.nl" + href
-
-                titel = a.get_text(strip=True)
-
-                prijs_el = card.find(string=re.compile(r"€\s*\d"))
-                prijs = prijs_el.strip() if prijs_el else ""
-
-                woning = Woning(
-                    titel=titel or href,
-                    prijs=prijs,
-                    adres="",
-                    postcode="",
-                    plaats=plaats.capitalize(),
-                    oppervlakte="",
-                    kamers="",
-                    url=href,
-                    platform="Pararius",
-                )
-                await self._push_woning(woning)
 
             nieuw = len(self.woningen) - count_voordat
             log.info(f"   >>> {nieuw} woningen op Pararius pagina {pagina}")
+            
+            # Pauze tussen pagina's
+            await self.page.wait_for_timeout(2000)
 
         totaal_pararius = sum(1 for w in self.woningen if w.platform == "Pararius")
         log.info(f"TOTAAL Pararius: {totaal_pararius} woningen")
 
-    # ===================== Duplicaten =====================
-
     def verwijder_duplicaten(self):
-        """Dedup op basis van (url, platform). (Alleen in self.woningen, dataset blijft alles hebben.)"""
         uniek = {}
         for w in self.woningen:
             key = (w.url, w.platform)
@@ -276,8 +348,6 @@ class PlaywrightScraper:
         Actor.log.info(f"Duplicaten in geheugen: {oud} -> {nieuw} unieke woningen")
 
 
-# ===================== main (Apify) =====================
-
 async def main() -> None:
     async with Actor:
         log = Actor.log
@@ -287,7 +357,6 @@ async def main() -> None:
         paginas = int(actor_input.get("paginas") or 3)
         platforms_input = actor_input.get("platforms") or ["FUNDA", "PARARIUS"]
 
-        # platforms_input kan string of lijst zijn
         if isinstance(platforms_input, str):
             platforms = [p.strip().upper() for p in platforms_input.split(",") if p.strip()]
         else:
@@ -297,28 +366,58 @@ async def main() -> None:
             platforms = ["FUNDA", "PARARIUS"]
 
         log.info("============================================================")
-        log.info("HUIZEN SCRAPER (Playwright / Apify)")
+        log.info("HUIZEN SCRAPER (Playwright / Apify) - MET PROXY")
         log.info("============================================================")
         log.info(f"Plaats     : {plaats}")
         log.info(f"Paginas    : {paginas}")
         log.info(f"Platforms  : {', '.join(platforms)}")
         log.info("============================================================")
 
-        # Playwright + browser starten
-        async with async_playwright() as p:
-            # Op Apify kun je proxies/stealth/captcha in Actor settings regelen
-            browser = await p.chromium.launch(
-                headless=True,  # Apify draait normaal headless
-                args=["--disable-gpu", "--no-sandbox"],
-            )
-            context = await browser.new_context(
-                viewport={"width": 1400, "height": 900},
-                user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                           "AppleWebKit/537.36 (KHTML, like Gecko) "
-                           "Chrome/120.0.0.0 Safari/537.36",
-            )
-            page = await context.new_page()
+        # Proxy configuratie voor Apify
+        proxy_configuration = await Actor.create_proxy_configuration(
+            groups=["RESIDENTIAL"],  # Of ["DATACENTER"] voor goedkoper
+            country_code="NL",
+        )
+        
+        proxy_url = None
+        if proxy_configuration:
+            proxy_url = await proxy_configuration.new_url()
+            log.info(f"Proxy actief: {proxy_url[:50]}...")
 
+        async with async_playwright() as p:
+            # Browser launch opties
+            launch_options = {
+                "headless": True,
+                "args": [
+                    "--disable-gpu",
+                    "--no-sandbox",
+                    "--disable-blink-features=AutomationControlled",
+                ],
+            }
+
+            browser = await p.chromium.launch(**launch_options)
+            
+            # Context met proxy (als beschikbaar)
+            context_options = {
+                "viewport": {"width": 1920, "height": 1080},
+                "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "locale": "nl-NL",
+                "timezone_id": "Europe/Amsterdam",
+            }
+            
+            if proxy_url:
+                context_options["proxy"] = {"server": proxy_url}
+
+            context = await browser.new_context(**context_options)
+            
+            # Stealth: verberg webdriver
+            await context.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                });
+            """)
+            
+            page = await context.new_page()
             scraper = PlaywrightScraper(page)
 
             if "FUNDA" in platforms or "ALL" in platforms:
@@ -332,7 +431,10 @@ async def main() -> None:
             await context.close()
             await browser.close()
 
-        log.info("Scrapen klaar. Resultaten staan in de Apify dataset.")
+        log.info("============================================================")
+        log.info(f"KLAAR! Totaal: {len(scraper.woningen)} woningen")
+        log.info("Resultaten staan in de Apify dataset.")
+        log.info("============================================================")
 
 
 if __name__ == "__main__":
