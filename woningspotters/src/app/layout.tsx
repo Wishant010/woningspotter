@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import Script from "next/script";
-import { gtmScript, GTM_ID } from "./gtm";
+import { gtmScript, consentDefaultScript, GTM_ID } from "./gtm";
 import './globals.css';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { TransitionProvider } from './components/TransitionProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import FloatingLines from './components/FloatingLines';
+import CookieConsent from './components/CookieConsent';
 
 export const metadata: Metadata = {
   title: 'WoningSpotters - Vind jouw droomwoning',
@@ -26,25 +27,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl" style={{ background: '#1a1a2e' }}>
+    <html lang="nl" className="layout-bg">
       <head>
+        {/* 1. Consent Mode defaults - MUST load BEFORE GTM */}
+        <Script
+          id="consent-default-script"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: consentDefaultScript }}
+        />
+        {/* 2. Google Tag Manager - loads AFTER consent defaults */}
         <Script
           id="gtm-script"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: gtmScript }}
         />
       </head>
-      <body className="antialiased flex flex-col min-h-screen" style={{
-        background: '#1a1a2e',
-        backgroundAttachment: 'fixed'
-      }}>
+      <body className="antialiased flex flex-col min-h-screen layout-body-bg">
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
             src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
             height="0"
             width="0"
-            style={{ display: 'none', visibility: 'hidden' }}
+            className="gtm-iframe-hidden"
           />
         </noscript>
 
@@ -66,6 +71,9 @@ export default function RootLayout({
 
           {/* Footer */}
           <Footer />
+
+          {/* Cookie Consent Banner */}
+          <CookieConsent />
         </AuthProvider>
       </body>
     </html>

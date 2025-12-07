@@ -233,3 +233,18 @@ select option:checked {
   background: linear-gradient(135deg, var(--accent) 0%, #FF9933 100%);
   color: white;
 }
+
+/* Layout background styles */
+.layout-bg {
+  background: #1a1a2e;
+}
+
+.layout-body-bg {
+  background: #1a1a2e;
+  background-attachment: fixed;
+}
+
+.gtm-iframe-hidden {
+  display: none;
+  visibility: hidden;
+}
