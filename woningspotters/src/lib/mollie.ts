@@ -1,12 +1,20 @@
-import createMollieClient from '@mollie/api-client';
+import createMollieClient, { MollieClient } from '@mollie/api-client';
 
-const mollieApiKey = process.env.MOLLIE_API_KEY!;
+let mollieClientInstance: MollieClient | null = null;
 
-if (!mollieApiKey) {
-  console.warn('MOLLIE_API_KEY is not set');
+export function getMollieClient(): MollieClient {
+  if (!mollieClientInstance) {
+    const mollieApiKey = process.env.MOLLIE_API_KEY;
+    
+    if (!mollieApiKey) {
+      throw new Error('MOLLIE_API_KEY is not set in environment variables');
+    }
+    
+    mollieClientInstance = createMollieClient({ apiKey: mollieApiKey });
+  }
+  
+  return mollieClientInstance;
 }
-
-export const mollieClient = createMollieClient({ apiKey: mollieApiKey });
 
 // Plan configuration
 export const PLANS = {

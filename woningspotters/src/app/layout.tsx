@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Script from "next/script";
+import { gtmScript, GTM_ID } from "./gtm";
 import './globals.css';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -25,10 +27,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nl" style={{ background: '#1a1a2e' }}>
+      <head>
+        <Script
+          id="gtm-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: gtmScript }}
+        />
+      </head>
       <body className="antialiased flex flex-col min-h-screen" style={{
         background: '#1a1a2e',
         backgroundAttachment: 'fixed'
       }}>
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: 'none', visibility: 'hidden' }}
+          />
+        </noscript>
+
         <AuthProvider>
           {/* Animated background */}
           <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">

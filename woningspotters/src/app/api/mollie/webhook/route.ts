@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mollieClient, PLANS, PlanType } from '@/lib/mollie';
+import { getMollieClient, PLANS, PlanType } from '@/lib/mollie';
 import { createServerClient } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No payment ID' }, { status: 400 });
     }
 
+    const mollieClient = getMollieClient();
     const payment = await mollieClient.payments.get(paymentId);
     const supabase = createServerClient();
     const metadata = payment.metadata as { userId: string; plan: PlanType; type: string };
