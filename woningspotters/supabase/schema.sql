@@ -1,8 +1,13 @@
--- WoningScout Database Schema
--- Run this in Supabase SQL Editor: https://supabase.com/dashboard/project/xewkipdebrhvwhaqxxyf/sql
+-- WoningSpotters Database Schema
+-- Run this in Supabase SQL Editor
+-- Safe to run multiple times
 
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
+
+-- =====================
+-- CREATE TABLES FIRST
+-- =====================
 
 -- Profiles table (extends auth.users)
 create table if not exists public.profiles (
@@ -52,7 +57,7 @@ create table if not exists public.favorites (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references auth.users on delete cascade not null,
   property_url text not null,
-  property_data jsonb not null, -- Store the full property data (address, price, image, etc.)
+  property_data jsonb not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(user_id, property_url)
 );
@@ -61,17 +66,49 @@ create table if not exists public.favorites (
 create table if not exists public.search_history (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references auth.users on delete cascade,
-  search_query jsonb not null, -- Store search params (location, price range, etc.)
+  search_query jsonb not null,
   results_count integer,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Enable Row Level Security (RLS)
+-- Newsletter subscribers table
+create table if not exists public.newsletter_subscribers (
+  id uuid default uuid_generate_v4() primary key,
+  email text unique not null,
+  subscribed_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  is_active boolean default true
+);
+
+-- =====================
+-- DROP EXISTING POLICIES (after tables exist)
+-- =====================
+drop policy if exists "Users can view own profile" on public.profiles;
+drop policy if exists "Users can update own profile" on public.profiles;
+drop policy if exists "Users can view own favorites" on public.favorites;
+drop policy if exists "Users can insert own favorites" on public.favorites;
+drop policy if exists "Users can delete own favorites" on public.favorites;
+drop policy if exists "Users can view own search history" on public.search_history;
+drop policy if exists "Users can insert own search history" on public.search_history;
+drop policy if exists "Users can view own subscriptions" on public.subscriptions;
+drop policy if exists "Service role can manage subscriptions" on public.subscriptions;
+drop policy if exists "Users can view own payments" on public.payments;
+drop policy if exists "Service role can manage payments" on public.payments;
+drop policy if exists "Anyone can subscribe to newsletter" on public.newsletter_subscribers;
+drop policy if exists "Users can view own subscription" on public.newsletter_subscribers;
+
+-- =====================
+-- ENABLE ROW LEVEL SECURITY
+-- =====================
 alter table public.profiles enable row level security;
 alter table public.favorites enable row level security;
 alter table public.search_history enable row level security;
 alter table public.subscriptions enable row level security;
 alter table public.payments enable row level security;
+alter table public.newsletter_subscribers enable row level security;
+
+-- =====================
+-- CREATE POLICIES
+-- =====================
 
 -- Profiles policies
 create policy "Users can view own profile" on public.profiles
@@ -111,6 +148,17 @@ create policy "Users can view own payments" on public.payments
 create policy "Service role can manage payments" on public.payments
   for all using (true);
 
+-- Newsletter subscribers policies
+create policy "Anyone can subscribe to newsletter" on public.newsletter_subscribers
+  for insert with check (true);
+
+create policy "Users can view own subscription" on public.newsletter_subscribers
+  for select using (true);
+
+-- =====================
+-- FUNCTIONS & TRIGGERS
+-- =====================
+
 -- Function to create profile on signup
 create or replace function public.handle_new_user()
 returns trigger as $$
@@ -127,24 +175,9 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
--- Newsletter subscribers table
-create table if not exists public.newsletter_subscribers (
-  id uuid default uuid_generate_v4() primary key,
-  email text unique not null,
-  subscribed_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  is_active boolean default true
-);
-
--- Newsletter subscribers policies (anyone can subscribe)
-alter table public.newsletter_subscribers enable row level security;
-
-create policy "Anyone can subscribe to newsletter" on public.newsletter_subscribers
-  for insert with check (true);
-
-create policy "Users can view own subscription" on public.newsletter_subscribers
-  for select using (true);
-
--- Indexes for better performance
+-- =====================
+-- INDEXES
+-- =====================
 create index if not exists favorites_user_id_idx on public.favorites(user_id);
 create index if not exists search_history_user_id_idx on public.search_history(user_id);
 create index if not exists search_history_created_at_idx on public.search_history(created_at desc);
