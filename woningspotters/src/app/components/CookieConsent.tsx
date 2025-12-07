@@ -70,6 +70,14 @@ export default function CookieConsent() {
         'ad_personalization': settings.ad_personalization,
         'analytics_storage': settings.analytics_storage,
       });
+
+      // Send event to GTM to confirm consent update
+      window.gtag('event', 'consent_update', {
+        'ad_storage': settings.ad_storage,
+        'ad_user_data': settings.ad_user_data,
+        'ad_personalization': settings.ad_personalization,
+        'analytics_storage': settings.analytics_storage,
+      });
     }
   };
 
@@ -139,9 +147,9 @@ export default function CookieConsent() {
                   Wij gebruiken cookies
                 </h3>
                 <p className="text-gray-300 text-sm mb-4">
-                  We gebruiken cookies en vergelijkbare technologieën om je ervaring te verbeteren,
-                  verkeer te analyseren en advertenties te personaliseren. Door op &quot;Accepteer alles&quot;
-                  te klikken, stem je in met ons gebruik van cookies.
+                  WoningSpotters maakt gebruik van functionele cookies en, met jouw toestemming, analytische
+                  cookies van Google Analytics 4. Deze worden geladen via Google Tag Manager en pas geactiveerd
+                  nadat je daarvoor toestemming hebt gegeven. Je kunt je voorkeuren op elk moment wijzigen.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <button
@@ -189,7 +197,8 @@ export default function CookieConsent() {
                   <div>
                     <h4 className="font-semibold text-white">Noodzakelijke cookies</h4>
                     <p className="text-sm text-gray-400 mt-1">
-                      Deze cookies zijn essentieel voor de werking van de website.
+                      Deze cookies zijn technisch noodzakelijk om de website goed te laten functioneren
+                      (bijvoorbeeld om je cookievoorkeuren op te slaan). Voor deze cookies is geen toestemming vereist.
                     </p>
                   </div>
                   <div className="px-3 py-1 bg-green-500/20 text-green-400 text-sm rounded-full">
@@ -202,9 +211,10 @@ export default function CookieConsent() {
               <div className="p-4 bg-[#2a2a4a] rounded-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 mr-4">
-                    <h4 className="font-semibold text-white">Analytische cookies</h4>
+                    <h4 className="font-semibold text-white">Analytische cookies (Google Analytics 4)</h4>
                     <p className="text-sm text-gray-400 mt-1">
-                      Helpen ons te begrijpen hoe bezoekers de website gebruiken.
+                      Wij gebruiken Google Analytics 4 via Google Tag Manager om statistieken bij te houden over het
+                      gebruik van onze website. Deze cookies worden pas geactiveerd na jouw toestemming.
                     </p>
                   </div>
                   <button

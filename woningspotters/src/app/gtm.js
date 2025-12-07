@@ -10,13 +10,32 @@ export const consentDefaultScript = `
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 
-gtag('consent', 'default', {
+// Check if user already gave consent
+const savedConsent = localStorage.getItem('cookie_consent');
+let initialConsent = {
   'ad_storage': 'denied',
   'ad_user_data': 'denied',
   'ad_personalization': 'denied',
   'analytics_storage': 'denied',
-  'wait_for_update': 500
-});
+  'wait_for_update': 2000
+};
+
+if (savedConsent) {
+  try {
+    const parsed = JSON.parse(savedConsent);
+    initialConsent = {
+      'ad_storage': parsed.ad_storage || 'denied',
+      'ad_user_data': parsed.ad_user_data || 'denied',
+      'ad_personalization': parsed.ad_personalization || 'denied',
+      'analytics_storage': parsed.analytics_storage || 'denied',
+      'wait_for_update': 500
+    };
+  } catch (e) {
+    // Silent error - use default denied state
+  }
+}
+
+gtag('consent', 'default', initialConsent);
 
 gtag('set', 'url_passthrough', true);
 gtag('set', 'ads_data_redaction', true);
