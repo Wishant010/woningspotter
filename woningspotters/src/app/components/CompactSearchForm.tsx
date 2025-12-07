@@ -33,28 +33,28 @@ const woningTypes: WoningTypeOption[] = [
 
 const minPriceOptionsKoop = [
   { value: '', label: 'Min prijs' },
-  { value: '100000', label: '€100k' },
-  { value: '150000', label: '€150k' },
-  { value: '200000', label: '€200k' },
-  { value: '250000', label: '€250k' },
-  { value: '300000', label: '€300k' },
-  { value: '400000', label: '€400k' },
-  { value: '500000', label: '€500k' },
-  { value: '750000', label: '€750k' },
-  { value: '1000000', label: '€1M' },
+  { value: '100000', label: '€100.000' },
+  { value: '150000', label: '€150.000' },
+  { value: '200000', label: '€200.000' },
+  { value: '250000', label: '€250.000' },
+  { value: '300000', label: '€300.000' },
+  { value: '400000', label: '€400.000' },
+  { value: '500000', label: '€500.000' },
+  { value: '750000', label: '€750.000' },
+  { value: '1000000', label: '€1.000.000' },
 ];
 
 const maxPriceOptionsKoop = [
   { value: '', label: 'Max prijs' },
-  { value: '200000', label: '€200k' },
-  { value: '300000', label: '€300k' },
-  { value: '400000', label: '€400k' },
-  { value: '500000', label: '€500k' },
-  { value: '600000', label: '€600k' },
-  { value: '750000', label: '€750k' },
-  { value: '1000000', label: '€1M' },
-  { value: '1500000', label: '€1.5M' },
-  { value: '2000000', label: '€2M+' },
+  { value: '200000', label: '€200.000' },
+  { value: '300000', label: '€300.000' },
+  { value: '400000', label: '€400.000' },
+  { value: '500000', label: '€500.000' },
+  { value: '600000', label: '€600.000' },
+  { value: '750000', label: '€750.000' },
+  { value: '1000000', label: '€1.000.000' },
+  { value: '1500000', label: '€1.500.000' },
+  { value: '2000000', label: '€2.000.000+' },
 ];
 
 const minPriceOptionsHuur = [
