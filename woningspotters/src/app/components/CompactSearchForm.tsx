@@ -120,52 +120,52 @@ export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProp
   const maxPriceOptions = filters.type === 'koop' ? maxPriceOptionsKoop : maxPriceOptionsHuur;
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="glass rounded-2xl p-5">
+    <div className="w-full max-w-3xl mx-auto">
+      <div className="glass rounded-2xl p-5 md:p-8">
         {/* Location input */}
-        <div className="mb-4">
+        <div className="mb-5 md:mb-6">
           <AddressAutocomplete
             onSelect={handleAddressSelect}
             placeholder="Zoek op stad of adres..."
           />
           {selectedCity && (
-            <div className="mt-2 text-xs text-white/60">
+            <div className="mt-2 text-sm text-white/60">
               Zoeken in <span className="text-[#FF7A00] font-medium">{selectedCity}</span>
             </div>
           )}
         </div>
 
         {/* Koop / Huur toggle */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-3 mb-5 md:mb-6">
           <button
             onClick={() => handleTypeChange('koop')}
-            className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-3 md:py-4 rounded-xl font-medium text-base md:text-lg flex items-center justify-center gap-2.5 transition-all ${
               filters.type === 'koop'
                 ? 'btn-gradient'
                 : 'bg-white/5 border border-white/10 hover:bg-white/10'
             }`}
           >
-            <Home className="w-4 h-4" /> Koop
+            <Home className="w-5 h-5 md:w-6 md:h-6" /> Koop
           </button>
           <button
             onClick={() => handleTypeChange('huur')}
-            className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all ${
+            className={`flex-1 py-3 md:py-4 rounded-xl font-medium text-base md:text-lg flex items-center justify-center gap-2.5 transition-all ${
               filters.type === 'huur'
                 ? 'btn-gradient'
                 : 'bg-white/5 border border-white/10 hover:bg-white/10'
             }`}
           >
-            <Key className="w-4 h-4" /> Huur
+            <Key className="w-5 h-5 md:w-6 md:h-6" /> Huur
           </button>
         </div>
 
         {/* Filters row: Price + Rooms */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-3 mb-5 md:mb-6">
           <div className="relative">
             <select
               value={filters.minPrijs}
               onChange={(e) => setFilters({ ...filters, minPrijs: e.target.value })}
-              className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#2B7CB3] focus:outline-none appearance-none cursor-pointer pr-8"
+              className="w-full px-4 py-3 md:py-4 bg-white/5 border border-white/10 rounded-xl text-white text-sm md:text-base focus:border-[#2B7CB3] focus:outline-none appearance-none cursor-pointer pr-10"
             >
               {minPriceOptions.map((option) => (
                 <option key={option.value} value={option.value} className="bg-[#1a1a2e]">
@@ -173,14 +173,14 @@ export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProp
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 pointer-events-none" />
           </div>
 
           <div className="relative">
             <select
               value={filters.maxPrijs}
               onChange={(e) => setFilters({ ...filters, maxPrijs: e.target.value })}
-              className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#2B7CB3] focus:outline-none appearance-none cursor-pointer pr-8"
+              className="w-full px-4 py-3 md:py-4 bg-white/5 border border-white/10 rounded-xl text-white text-sm md:text-base focus:border-[#2B7CB3] focus:outline-none appearance-none cursor-pointer pr-10"
             >
               {maxPriceOptions.map((option) => (
                 <option key={option.value} value={option.value} className="bg-[#1a1a2e]">
@@ -188,14 +188,14 @@ export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProp
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 pointer-events-none" />
           </div>
 
           <div className="relative">
             <select
               value={filters.kamers}
               onChange={(e) => setFilters({ ...filters, kamers: e.target.value })}
-              className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:border-[#2B7CB3] focus:outline-none appearance-none cursor-pointer pr-8"
+              className="w-full px-4 py-3 md:py-4 bg-white/5 border border-white/10 rounded-xl text-white text-sm md:text-base focus:border-[#2B7CB3] focus:outline-none appearance-none cursor-pointer pr-10"
             >
               {kamerOptions.map((option) => (
                 <option key={option.value} value={option.value} className="bg-[#1a1a2e]">
@@ -203,12 +203,12 @@ export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProp
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 pointer-events-none" />
           </div>
         </div>
 
         {/* Property types */}
-        <div className="grid grid-cols-6 gap-1.5 mb-4">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3 mb-5 md:mb-6">
           {woningTypes.map((wt) => {
             const IconComponent = wt.icon;
             return (
@@ -220,13 +220,13 @@ export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProp
                     woningType: filters.woningType === wt.id ? '' : wt.id,
                   })
                 }
-                className={`py-2 px-1 text-[10px] font-medium rounded-lg flex flex-col items-center gap-1 transition-all ${
+                className={`py-3 md:py-4 px-2 text-xs md:text-sm font-medium rounded-xl flex flex-col items-center gap-1.5 md:gap-2 transition-all ${
                   filters.woningType === wt.id
                     ? 'btn-gradient'
                     : 'bg-white/5 border border-white/10 hover:bg-white/10'
                 }`}
               >
-                <IconComponent className="w-4 h-4" />
+                <IconComponent className="w-5 h-5 md:w-6 md:h-6" />
                 <span className="truncate w-full text-center leading-tight">{wt.label}</span>
               </button>
             );
@@ -237,7 +237,7 @@ export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProp
         <button
           onClick={handleSubmit}
           disabled={!canSearch || isLoading}
-          className={`w-full py-3 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all ${
+          className={`w-full py-4 md:py-5 font-semibold text-base md:text-lg rounded-xl flex items-center justify-center gap-2.5 transition-all ${
             canSearch && !isLoading
               ? 'btn-gradient shadow-lg shadow-[#FF7A00]/25 hover:shadow-[#FF7A00]/40'
               : 'bg-white/10 text-white/50 cursor-not-allowed'
@@ -245,11 +245,11 @@ export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProp
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" /> Zoeken...
+              <Loader2 className="w-6 h-6 animate-spin" /> Zoeken...
             </>
           ) : (
             <>
-              <Search className="w-5 h-5" /> Zoek woningen
+              <Search className="w-6 h-6" /> Zoek woningen
             </>
           )}
         </button>

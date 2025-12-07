@@ -111,27 +111,27 @@ export default function PricingPage() {
 
   return (
     <PageTransition>
-      <div className="px-4 py-8 pb-16">
-        <div className="max-w-5xl mx-auto">
+      <div className="px-4 md:px-6 py-8 md:py-12 pb-16">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-3">
+          <div className="text-center mb-10 md:mb-14">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold gradient-text mb-4">
               Kies jouw plan
             </h1>
-            <p className="text-white/50 max-w-xl mx-auto">
+            <p className="text-white/50 text-base md:text-lg lg:text-xl max-w-2xl mx-auto">
               Van gratis tot premium – er is altijd een plan dat bij je past.
             </p>
           </div>
 
           {/* Error message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-center">
-              <p className="text-red-400">{error}</p>
+            <div className="mb-8 p-5 bg-red-500/10 border border-red-500/30 rounded-xl text-center">
+              <p className="text-red-400 text-base md:text-lg">{error}</p>
             </div>
           )}
 
           {/* Plans grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8 items-center">
             {plans.map((plan) => {
               const Icon = plan.icon;
               const isPro = plan.tier === 'pro';
@@ -142,12 +142,12 @@ export default function PricingPage() {
                 <div
                   key={plan.name}
                   id={plan.id}
-                  className={`relative glass rounded-2xl p-6 flex flex-col transition-all duration-300 ${
+                  className={`relative glass rounded-2xl p-6 md:p-8 flex flex-col transition-all duration-500 ease-out cursor-pointer hover:-translate-y-2 hover:shadow-2xl ${
                     isPro
-                      ? 'ring-2 ring-[#e94560] bg-white/10 md:scale-105 md:py-8 shadow-lg shadow-[#e94560]/20'
+                      ? 'ring-2 ring-[#e94560] bg-white/10 md:py-10 shadow-lg shadow-[#e94560]/20 hover:shadow-[#e94560]/40'
                       : isUltra
-                      ? 'ring-1 ring-[#a855f7]/50 bg-white/5 hover:ring-[#a855f7]'
-                      : 'hover:bg-white/5'
+                      ? 'ring-1 ring-[#a855f7]/50 bg-white/5 hover:ring-[#a855f7] hover:shadow-[#a855f7]/30'
+                      : 'hover:bg-white/5 hover:shadow-white/10'
                   }`}
                 >
                   {/* Popular badge - only for Pro */}

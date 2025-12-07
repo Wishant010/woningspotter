@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="nl" style={{ background: '#1a1a2e' }}>
       <body className="antialiased flex flex-col min-h-screen" style={{
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        background: '#1a1a2e',
         backgroundAttachment: 'fixed'
       }}>
         <AuthProvider>
