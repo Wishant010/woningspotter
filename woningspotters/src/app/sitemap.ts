@@ -2,7 +2,7 @@
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://woningspotters.nl'
+  const baseUrl = 'https://woningspotter.nl'
 
   return [
     {
