@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mollieClient } from '@/lib/mollie';
+import { getMollieClient } from '@/lib/mollie';
 import { createServerClient } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Cancel subscription in Mollie
+    const mollieClient = getMollieClient();
     await mollieClient.customerSubscriptions.cancel(
       subscription.mollie_subscription_id,
       { customerId: subscription.mollie_customer_id }

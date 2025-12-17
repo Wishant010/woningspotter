@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase-server';
-import { mollieClient } from '@/lib/mollie';
+import { getMollieClient } from '@/lib/mollie';
 
 // This endpoint manually activates a subscription after payment
 // Used for localhost testing where webhooks don't work
@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check payment status with Mollie
+    const mollieClient = getMollieClient();
     const molliePayment = await mollieClient.payments.get(payment.mollie_payment_id);
 
     if (molliePayment.status !== 'paid') {
