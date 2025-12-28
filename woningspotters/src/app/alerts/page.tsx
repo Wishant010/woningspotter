@@ -17,6 +17,7 @@ import {
   ToggleLeft,
   ToggleRight,
   X,
+  Pencil,
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
@@ -57,6 +58,19 @@ export default function AlertsPage() {
     kamers: '',
     woningType: '' as SearchFilters['woningType'],
   });
+
+  // Edit state
+  const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    locatie: '',
+    type: 'koop' as 'koop' | 'huur',
+    minPrijs: '',
+    maxPrijs: '',
+    kamers: '',
+    woningType: '' as SearchFilters['woningType'],
+  });
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -190,6 +204,57 @@ export default function AlertsPage() {
     }
   };
 
+  const startEditAlert = (alert: Alert) => {
+    setEditingAlert(alert);
+    setEditFormData({
+      name: alert.name,
+      locatie: alert.search_criteria.locatie || '',
+      type: alert.search_criteria.type || 'koop',
+      minPrijs: alert.search_criteria.minPrijs || '',
+      maxPrijs: alert.search_criteria.maxPrijs || '',
+      kamers: alert.search_criteria.kamers || '',
+      woningType: alert.search_criteria.woningType || '',
+    });
+  };
+
+  const handleUpdateAlert = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !editingAlert || !editFormData.name || !editFormData.locatie) return;
+
+    setUpdating(true);
+    try {
+      const response = await fetch('/api/alerts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          alertId: editingAlert.id,
+          name: editFormData.name,
+          searchCriteria: {
+            locatie: editFormData.locatie,
+            type: editFormData.type,
+            minPrijs: editFormData.minPrijs,
+            maxPrijs: editFormData.maxPrijs,
+            kamers: editFormData.kamers,
+            woningType: editFormData.woningType,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAlerts(prev =>
+          prev.map(a => (a.id === editingAlert.id ? data.alert : a))
+        );
+        setEditingAlert(null);
+      }
+    } catch (error) {
+      console.error('Error updating alert:', error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <PageTransition>
@@ -317,8 +382,16 @@ export default function AlertsPage() {
                         )}
                       </button>
                       <button
+                        onClick={() => startEditAlert(alert)}
+                        className="p-2 rounded-lg bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-colors"
+                        title="Bewerken"
+                      >
+                        <Pencil className="w-5 h-5" />
+                      </button>
+                      <button
                         onClick={() => handleDeleteAlert(alert.id)}
                         className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                        title="Verwijderen"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -460,6 +533,115 @@ export default function AlertsPage() {
                   <>
                     <Plus className="w-5 h-5" />
                     Alert aanmaken
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="glass rounded-2xl p-6 w-full max-w-md animate-fade-in">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold">Alert bewerken</h2>
+              <button
+                onClick={() => setEditingAlert(null)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateAlert} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Alert naam</label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={e => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="bijv. Appartementen Amsterdam"
+                  required
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-[#2B7CB3] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Locatie</label>
+                <input
+                  type="text"
+                  value={editFormData.locatie}
+                  onChange={e => setEditFormData(prev => ({ ...prev, locatie: e.target.value }))}
+                  placeholder="bijv. Amsterdam"
+                  required
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-[#2B7CB3] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Type</label>
+                <select
+                  value={editFormData.type}
+                  onChange={e => setEditFormData(prev => ({ ...prev, type: e.target.value as 'koop' | 'huur' }))}
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-[#2B7CB3] focus:outline-none"
+                >
+                  <option value="koop" className="bg-[#1a1a2e]">Koop</option>
+                  <option value="huur" className="bg-[#1a1a2e]">Huur</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Min prijs</label>
+                  <input
+                    type="number"
+                    value={editFormData.minPrijs}
+                    onChange={e => setEditFormData(prev => ({ ...prev, minPrijs: e.target.value }))}
+                    placeholder="0"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-[#2B7CB3] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Max prijs</label>
+                  <input
+                    type="number"
+                    value={editFormData.maxPrijs}
+                    onChange={e => setEditFormData(prev => ({ ...prev, maxPrijs: e.target.value }))}
+                    placeholder="Geen max"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-[#2B7CB3] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Min kamers</label>
+                <select
+                  value={editFormData.kamers}
+                  onChange={e => setEditFormData(prev => ({ ...prev, kamers: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm focus:border-[#2B7CB3] focus:outline-none"
+                >
+                  <option value="" className="bg-[#1a1a2e]">Alle</option>
+                  <option value="1+" className="bg-[#1a1a2e]">1+</option>
+                  <option value="2+" className="bg-[#1a1a2e]">2+</option>
+                  <option value="3+" className="bg-[#1a1a2e]">3+</option>
+                  <option value="4+" className="bg-[#1a1a2e]">4+</option>
+                  <option value="5+" className="bg-[#1a1a2e]">5+</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={updating}
+                className="w-full py-3 btn-gradient rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {updating ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Pencil className="w-5 h-5" />
+                    Alert opslaan
                   </>
                 )}
               </button>

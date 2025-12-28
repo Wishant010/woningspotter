@@ -110,11 +110,20 @@ export default function FavoritesPage() {
             /* Favorites grid */
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {favorites.map((favorite, index) => (
-                <WoningCard
-                  key={favorite.id}
-                  woning={favorite.property_data}
-                  index={index}
-                />
+                <div key={favorite.id} className="relative group">
+                  <WoningCard
+                    woning={favorite.property_data}
+                    index={index}
+                  />
+                  {/* Remove button overlay */}
+                  <button
+                    onClick={() => removeFavorite(favorite.property_data.url)}
+                    className="absolute top-3 right-3 z-10 p-2 bg-red-500/80 hover:bg-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
+                    title="Verwijderen uit favorieten"
+                  >
+                    <Trash2 className="w-4 h-4 text-white" />
+                  </button>
+                </div>
               ))}
             </div>
           )}

@@ -696,20 +696,14 @@ export function Footer() {
               <h4 className="font-semibold mb-4">Juridisch</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <button
-                    onClick={() => openModal('privacy')}
-                    className="text-white/50 hover:text-white transition-colors"
-                  >
+                  <Link href="/privacy" className="text-white/50 hover:text-white transition-colors">
                     Privacybeleid
-                  </button>
+                  </Link>
                 </li>
                 <li>
-                  <button
-                    onClick={() => openModal('voorwaarden')}
-                    className="text-white/50 hover:text-white transition-colors"
-                  >
+                  <Link href="/voorwaarden" className="text-white/50 hover:text-white transition-colors">
                     Algemene Voorwaarden
-                  </button>
+                  </Link>
                 </li>
                 <li>
                   <button
@@ -748,18 +742,12 @@ export function Footer() {
               © {new Date().getFullYear()} WoningSpotters. Alle rechten voorbehouden.
             </p>
             <div className="flex gap-6 text-sm">
-              <button
-                onClick={() => openModal('privacy')}
-                className="text-white/40 hover:text-white transition-colors"
-              >
+              <Link href="/privacy" className="text-white/40 hover:text-white transition-colors">
                 Privacy
-              </button>
-              <button
-                onClick={() => openModal('voorwaarden')}
-                className="text-white/40 hover:text-white transition-colors"
-              >
+              </Link>
+              <Link href="/voorwaarden" className="text-white/40 hover:text-white transition-colors">
                 Voorwaarden
-              </button>
+              </Link>
               <button
                 onClick={() => openModal('cookies')}
                 className="text-white/40 hover:text-white transition-colors"

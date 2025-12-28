@@ -5,6 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PageTransition } from '../../components/PageTransition';
 import { Woning } from '@/types';
+
+// Note: Dynamic metadata for this page requires server-side data fetching
+// Since woning data comes from sessionStorage, we use a generic title
 import {
   ArrowLeft,
   MapPin,
@@ -28,7 +31,10 @@ export default function WoningDetailPage() {
     // Haal de woning data op uit sessionStorage
     const storedWoning = sessionStorage.getItem(`woning_${params.id}`);
     if (storedWoning) {
-      setWoning(JSON.parse(storedWoning));
+      const data = JSON.parse(storedWoning);
+      setWoning(data);
+      // Update document title dynamically
+      document.title = `${data.titel} | WoningSpotters`;
     }
   }, [params.id]);
 

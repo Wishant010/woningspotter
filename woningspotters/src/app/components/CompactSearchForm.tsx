@@ -17,9 +17,16 @@ import {
 } from 'lucide-react';
 import { AddressAutocomplete } from './AddressAutocomplete';
 
+interface SearchLimitInfo {
+  searchesRemaining: number;
+  searchLimit: number;
+  tier: 'free' | 'pro' | 'ultra';
+}
+
 interface CompactSearchFormProps {
   onSearch: (filters: SearchFilters) => void;
   isLoading: boolean;
+  searchLimitInfo?: SearchLimitInfo;
 }
 
 const woningTypes: WoningTypeOption[] = [
@@ -89,7 +96,7 @@ const kamerOptions = [
   { value: '5', label: '5+' },
 ];
 
-export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProps) {
+export function CompactSearchForm({ onSearch, isLoading, searchLimitInfo }: CompactSearchFormProps) {
   const [filters, setFilters] = useState<SearchFilters>({
     locatie: '',
     type: 'koop',
@@ -239,9 +246,9 @@ export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProp
         {/* Search button */}
         <button
           onClick={handleSubmit}
-          disabled={!canSearch || isLoading}
+          disabled={!canSearch || isLoading || (searchLimitInfo && searchLimitInfo.searchesRemaining <= 0)}
           className={`w-full py-4 md:py-5 font-semibold text-base md:text-lg rounded-xl flex items-center justify-center gap-2.5 transition-all ${
-            canSearch && !isLoading
+            canSearch && !isLoading && (!searchLimitInfo || searchLimitInfo.searchesRemaining > 0)
               ? 'btn-gradient shadow-lg shadow-[#FF7A00]/25 hover:shadow-[#FF7A00]/40'
               : 'bg-white/10 text-white/50 cursor-not-allowed'
           }`}
@@ -256,6 +263,32 @@ export function CompactSearchForm({ onSearch, isLoading }: CompactSearchFormProp
             </>
           )}
         </button>
+
+        {/* Search limit display */}
+        {searchLimitInfo && (
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-white/60">
+              <span>
+                {searchLimitInfo.searchesRemaining > 0 ? (
+                  <>
+                    <span className="text-white font-medium">{searchLimitInfo.searchesRemaining}</span>
+                    <span> / {searchLimitInfo.searchLimit} zoekopdrachten over</span>
+                  </>
+                ) : (
+                  <span className="text-[#FF7A00]">Dagelijkse limiet bereikt</span>
+                )}
+              </span>
+            </div>
+            {searchLimitInfo.tier === 'free' && (
+              <a
+                href="/pricing"
+                className="text-xs text-[#5BA3D0] hover:text-[#FF7A00] transition-colors"
+              >
+                Upgrade →
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -184,6 +184,56 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
+// PUT - Update alert details
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = createServerClient();
+    const { userId, alertId, name, searchCriteria } = await request.json();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    if (!alertId || !name || !searchCriteria) {
+      return NextResponse.json(
+        { error: 'Alert ID, name, and search criteria are required' },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabase
+      .from('search_alerts')
+      .update({
+        name,
+        search_criteria: searchCriteria,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId)
+      .eq('id', alertId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating alert:', error);
+      return NextResponse.json(
+        { error: 'Failed to update alert' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ alert: data });
+  } catch (error) {
+    console.error('Error in alerts PUT:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 // PATCH - Toggle alert active status
 export async function PATCH(request: NextRequest) {
   try {

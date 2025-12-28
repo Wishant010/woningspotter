@@ -1,8 +1,7 @@
-// app/sitemap.ts
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://woningspotter.nl'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://woningspotters.nl'
 
   return [
     {
@@ -36,16 +35,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     },
     {
-      url: `${baseUrl}/login`,
+      url: `${baseUrl}/privacy`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/favorites`,
+      url: `${baseUrl}/voorwaarden`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
+      changeFrequency: 'yearly',
+      priority: 0.3,
     },
   ]
 }

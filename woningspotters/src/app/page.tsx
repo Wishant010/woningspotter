@@ -2,20 +2,74 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { CompactSearchForm } from './components/CompactSearchForm';
 import { WoningCard, WoningCardSkeleton } from './components/WoningCard';
 import { PageTransition } from './components/PageTransition';
 import { SearchFilters, Woning, SearchResponse } from '@/types';
-import { RefreshCw, AlertCircle, Home, ArrowLeft, MapPin } from 'lucide-react';
+import { RefreshCw, AlertCircle, Home, ArrowLeft, MapPin, Download, FileSpreadsheet, Sparkles } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { createClient } from '@/lib/supabase';
 
 const SEARCH_RESULTS_KEY = 'woningspotters_search_results';
 const SEARCH_FILTERS_KEY = 'woningspotters_search_filters';
 
+const tierLimits: Record<string, number> = {
+  free: 5,
+  pro: 30,
+  ultra: 100,
+};
+
 export default function HomePage() {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<Woning[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchedFilters, setSearchedFilters] = useState<SearchFilters | null>(null);
+  const [userTier, setUserTier] = useState<'free' | 'pro' | 'ultra'>('free');
+  const [searchesToday, setSearchesToday] = useState(0);
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Fetch user tier and searches count
+  useEffect(() => {
+    async function fetchUserProfile() {
+      if (!user) {
+        setUserTier('free');
+        setSearchesToday(0);
+        return;
+      }
+      const supabase = createClient();
+      if (!supabase) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier, searches_today, last_search_date')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setUserTier((profile.subscription_tier as 'free' | 'pro' | 'ultra') || 'free');
+        // Reset count if last search was not today
+        const today = new Date().toISOString().split('T')[0];
+        const lastSearchDate = profile.last_search_date;
+        if (lastSearchDate === today) {
+          setSearchesToday(profile.searches_today || 0);
+        } else {
+          setSearchesToday(0);
+        }
+      }
+    }
+    fetchUserProfile();
+  }, [user]);
+
+  // Calculate search limit info
+  const searchLimit = tierLimits[userTier] || 5;
+  const searchesRemaining = Math.max(0, searchLimit - searchesToday);
+  const searchLimitInfo = user ? {
+    searchesRemaining,
+    searchLimit,
+    tier: userTier,
+  } : undefined;
 
   // Herstel zoekresultaten uit sessionStorage bij laden
   useEffect(() => {
@@ -44,6 +98,10 @@ export default function HomePage() {
 
       if (data.success && data.data) {
         setResults(data.data);
+        // Update search count locally (API already updates database)
+        if (user) {
+          setSearchesToday(prev => prev + 1);
+        }
         // Sla resultaten op in sessionStorage voor terug-navigatie
         sessionStorage.setItem(SEARCH_RESULTS_KEY, JSON.stringify(data.data));
         sessionStorage.setItem(SEARCH_FILTERS_KEY, JSON.stringify(filters));
@@ -65,6 +123,41 @@ export default function HomePage() {
     // Verwijder opgeslagen resultaten uit sessionStorage
     sessionStorage.removeItem(SEARCH_RESULTS_KEY);
     sessionStorage.removeItem(SEARCH_FILTERS_KEY);
+  };
+
+  const handleExport = async (format: 'csv' | 'excel') => {
+    if (!user || !results || results.length === 0) return;
+
+    setIsExporting(true);
+    try {
+      const response = await fetch('/api/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': user.id,
+        },
+        body: JSON.stringify({ results, format }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Export mislukt');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `woningen-export-${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xls' : 'csv'}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Export error:', err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Search view - centered on screen, no scroll
@@ -90,7 +183,7 @@ export default function HomePage() {
           </div>
 
           {/* Search form */}
-          <CompactSearchForm onSearch={handleSearch} isLoading={isLoading} />
+          <CompactSearchForm onSearch={handleSearch} isLoading={isLoading} searchLimitInfo={searchLimitInfo} />
         </div>
       </div>
       </PageTransition>
@@ -189,13 +282,53 @@ export default function HomePage() {
               )}
             </div>
           </div>
-          <button
-            onClick={handleReset}
-            className="px-4 py-2.5 text-sm md:text-base font-medium bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 flex items-center gap-2 transition-all"
-          >
-            <RefreshCw className="w-4 h-4 md:w-5 md:h-5" /> Nieuw zoeken
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Export buttons - Ultra only */}
+            {userTier === 'ultra' && results && results.length > 0 && (
+              <>
+                <button
+                  onClick={() => handleExport('csv')}
+                  disabled={isExporting}
+                  className="px-3 py-2.5 text-sm font-medium bg-[#FF7A00]/10 border border-[#FF7A00]/30 text-[#FF7A00] rounded-xl hover:bg-[#FF7A00]/20 flex items-center gap-2 transition-all disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">CSV</span>
+                </button>
+                <button
+                  onClick={() => handleExport('excel')}
+                  disabled={isExporting}
+                  className="px-3 py-2.5 text-sm font-medium bg-green-500/10 border border-green-500/30 text-green-400 rounded-xl hover:bg-green-500/20 flex items-center gap-2 transition-all disabled:opacity-50"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span className="hidden sm:inline">Excel</span>
+                </button>
+              </>
+            )}
+            <button
+              onClick={handleReset}
+              className="px-4 py-2.5 text-sm md:text-base font-medium bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 flex items-center gap-2 transition-all"
+            >
+              <RefreshCw className="w-4 h-4 md:w-5 md:h-5" /> Nieuw zoeken
+            </button>
+          </div>
         </div>
+
+        {/* Upgrade hint for non-Ultra */}
+        {userTier !== 'ultra' && results && results.length > 0 && (
+          <Link
+            href="/pricing"
+            className="mb-4 p-3 bg-gradient-to-r from-[#FF7A00]/10 to-purple-500/10 border border-[#FF7A00]/20 rounded-xl flex items-center gap-3 hover:border-[#FF7A00]/40 transition-all group"
+          >
+            <div className="w-8 h-8 bg-[#FF7A00]/20 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-[#FF7A00]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white/90">Exporteer naar Excel of CSV</p>
+              <p className="text-xs text-white/50">Upgrade naar Ultra voor export</p>
+            </div>
+            <span className="text-xs text-[#FF7A00] font-medium group-hover:underline whitespace-nowrap">Bekijk Ultra</span>
+          </Link>
+        )}
 
         {/* Results grid */}
         {results && results.length > 0 ? (

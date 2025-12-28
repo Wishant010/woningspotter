@@ -19,6 +19,11 @@ import {
   Zap,
   Rocket,
   AlertCircle,
+  Lock,
+  Save,
+  CheckCircle,
+  Edit3,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
@@ -26,6 +31,7 @@ import { createClient } from '@/lib/supabase';
 interface UserProfile {
   id: string;
   email: string;
+  full_name: string | null;
   subscription_tier: 'free' | 'pro' | 'ultra';
   searches_today: number;
   last_search_date: string | null;
@@ -66,13 +72,28 @@ const tierInfo = {
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, signOut, updatePassword } = useAuth();
   const { favorites } = useFavorites();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  // Profile editing state
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Password change state
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -148,6 +169,73 @@ export default function AccountPage() {
     router.push('/');
   };
 
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSavingProfile(true);
+    setProfileError(null);
+    setProfileSuccess(null);
+
+    const supabase = createClient();
+    if (!supabase) {
+      setProfileError('Database niet beschikbaar');
+      setSavingProfile(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ full_name: fullName, updated_at: new Date().toISOString() })
+      .eq('id', user.id);
+
+    if (error) {
+      setProfileError('Fout bij opslaan');
+    } else {
+      setProfileSuccess('Profiel opgeslagen!');
+      if (profile) {
+        setProfile({ ...profile, full_name: fullName });
+      }
+      setEditingProfile(false);
+      setTimeout(() => setProfileSuccess(null), 3000);
+    }
+    setSavingProfile(false);
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Wachtwoorden komen niet overeen');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('Wachtwoord moet minimaal 6 tekens zijn');
+      return;
+    }
+
+    setSavingPassword(true);
+
+    const { error } = await updatePassword(newPassword);
+    if (error) {
+      setPasswordError(error.message);
+    } else {
+      setPasswordSuccess('Wachtwoord gewijzigd!');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowPasswordForm(false);
+      setTimeout(() => setPasswordSuccess(null), 3000);
+    }
+    setSavingPassword(false);
+  };
+
+  const startEditingProfile = () => {
+    setFullName(profile?.full_name || '');
+    setEditingProfile(true);
+    setProfileError(null);
+    setProfileSuccess(null);
+  };
+
   if (authLoading || loading) {
     return (
       <PageTransition>
@@ -186,18 +274,71 @@ export default function AccountPage() {
                 <User className="w-8 h-8 text-white" />
               </div>
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-xl font-semibold">{user.email}</h2>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${tier.bgColor} ${tier.color}`}>
-                    {tier.name}
-                  </span>
-                </div>
-                <p className="text-white/50 text-sm">
-                  Lid sinds {new Date(profile.created_at).toLocaleDateString('nl-NL', {
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </p>
+                {editingProfile ? (
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Je naam"
+                      className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:border-[#5BA3D0] focus:outline-none"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSaveProfile}
+                        disabled={savingProfile}
+                        className="px-3 py-1.5 btn-gradient rounded-lg text-sm font-medium flex items-center gap-1.5 disabled:opacity-50"
+                      >
+                        {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Opslaan
+                      </button>
+                      <button
+                        onClick={() => setEditingProfile(false)}
+                        className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                        Annuleren
+                      </button>
+                    </div>
+                    {profileError && (
+                      <p className="text-red-400 text-sm flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" /> {profileError}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h2 className="text-xl font-semibold">
+                        {profile.full_name || user.email}
+                      </h2>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${tier.bgColor} ${tier.color}`}>
+                        {tier.name}
+                      </span>
+                      <button
+                        onClick={startEditingProfile}
+                        className="p-1 hover:bg-white/10 rounded transition-colors"
+                        title="Naam bewerken"
+                      >
+                        <Edit3 className="w-4 h-4 text-white/50 hover:text-white" />
+                      </button>
+                    </div>
+                    {profile.full_name && (
+                      <p className="text-white/70 text-sm mb-1">{user.email}</p>
+                    )}
+                    <p className="text-white/50 text-sm">
+                      Lid sinds {new Date(profile.created_at).toLocaleDateString('nl-NL', {
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  </>
+                )}
+                {profileSuccess && (
+                  <p className="text-green-400 text-sm flex items-center gap-1 mt-2">
+                    <CheckCircle className="w-4 h-4" /> {profileSuccess}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -309,6 +450,79 @@ export default function AccountPage() {
                   </div>
                 )}
               </div>
+            )}
+          </div>
+
+          {/* Password Section */}
+          <div className="glass rounded-2xl p-6 mb-6">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-[#5BA3D0]" />
+              Beveiliging
+            </h3>
+
+            {!showPasswordForm ? (
+              <button
+                onClick={() => setShowPasswordForm(true)}
+                className="text-sm text-white/70 hover:text-white flex items-center gap-2 transition-colors"
+              >
+                <Edit3 className="w-4 h-4" />
+                Wachtwoord wijzigen
+              </button>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-white/50 mb-1.5">Nieuw wachtwoord</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Minimaal 6 tekens"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:border-[#5BA3D0] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-white/50 mb-1.5">Bevestig wachtwoord</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Herhaal je wachtwoord"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:border-[#5BA3D0] focus:outline-none"
+                  />
+                </div>
+                {passwordError && (
+                  <p className="text-red-400 text-sm flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" /> {passwordError}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={savingPassword || !newPassword || !confirmPassword}
+                    className="px-4 py-2 btn-gradient rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Opslaan
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowPasswordForm(false);
+                      setNewPassword('');
+                      setConfirmPassword('');
+                      setPasswordError(null);
+                    }}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Annuleren
+                  </button>
+                </div>
+              </div>
+            )}
+            {passwordSuccess && (
+              <p className="text-green-400 text-sm flex items-center gap-1 mt-3">
+                <CheckCircle className="w-4 h-4" /> {passwordSuccess}
+              </p>
             )}
           </div>
 
