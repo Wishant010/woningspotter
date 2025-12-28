@@ -1,7 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { PageTransition } from '../components/PageTransition';
-import { Users, Target, Zap, Shield, ArrowRight } from 'lucide-react';
+import { Users, Target, Zap, Shield, ArrowRight, Search, MapPin, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 const features = [
@@ -27,7 +28,41 @@ const features = [
   },
 ];
 
+interface Stats {
+  users: number;
+  searches: number;
+  news: number;
+}
+
 export default function AboutPage() {
+  const [stats, setStats] = useState<Stats | null>(null);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    }
+
+    fetchStats();
+  }, []);
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000) {
+      return `${Math.floor(num / 1000)}K+`;
+    }
+    if (num > 0) {
+      return `${num}+`;
+    }
+    return '0';
+  };
+
   return (
     <PageTransition>
       <div className="px-4 py-8 pb-16">
@@ -80,14 +115,27 @@ export default function AboutPage() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
             <div className="glass rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-[#FF7A00]">1000+</div>
-              <div className="text-xs text-white/40 uppercase tracking-wider">Woningen</div>
+              <div className="w-8 h-8 mx-auto mb-2 bg-[#FF7A00]/20 rounded-lg flex items-center justify-center">
+                <Users className="w-4 h-4 text-[#FF7A00]" />
+              </div>
+              <div className="text-2xl font-bold text-[#FF7A00]">
+                {stats ? formatNumber(stats.users) : '-'}
+              </div>
+              <div className="text-xs text-white/40 uppercase tracking-wider">Gebruikers</div>
             </div>
             <div className="glass rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-[#FF7A00]">50+</div>
-              <div className="text-xs text-white/40 uppercase tracking-wider">Steden</div>
+              <div className="w-8 h-8 mx-auto mb-2 bg-[#FF7A00]/20 rounded-lg flex items-center justify-center">
+                <Search className="w-4 h-4 text-[#FF7A00]" />
+              </div>
+              <div className="text-2xl font-bold text-[#FF7A00]">
+                {stats ? formatNumber(stats.searches) : '-'}
+              </div>
+              <div className="text-xs text-white/40 uppercase tracking-wider">Zoekopdrachten</div>
             </div>
             <div className="glass rounded-xl p-4 text-center">
+              <div className="w-8 h-8 mx-auto mb-2 bg-[#FF7A00]/20 rounded-lg flex items-center justify-center">
+                <Clock className="w-4 h-4 text-[#FF7A00]" />
+              </div>
               <div className="text-2xl font-bold text-[#FF7A00]">24/7</div>
               <div className="text-xs text-white/40 uppercase tracking-wider">Updates</div>
             </div>

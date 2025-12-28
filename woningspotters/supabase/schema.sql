@@ -93,6 +93,20 @@ create table if not exists public.search_alerts (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- News articles table (housing market news)
+create table if not exists public.news_articles (
+  id uuid default uuid_generate_v4() primary key,
+  title text not null,
+  summary text not null,
+  content text,
+  category text not null check (category in ('Marktanalyse', 'Nieuwbouw', 'Hypotheek', 'Regelgeving', 'Tips')),
+  source_url text,
+  image_url text,
+  is_featured boolean default false,
+  published_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- =====================
 -- DROP EXISTING POLICIES (after tables exist)
 -- =====================
@@ -113,6 +127,8 @@ drop policy if exists "Users can view own alerts" on public.search_alerts;
 drop policy if exists "Users can insert own alerts" on public.search_alerts;
 drop policy if exists "Users can update own alerts" on public.search_alerts;
 drop policy if exists "Users can delete own alerts" on public.search_alerts;
+drop policy if exists "Anyone can view news" on public.news_articles;
+drop policy if exists "Admins can manage news" on public.news_articles;
 
 -- =====================
 -- ENABLE ROW LEVEL SECURITY
@@ -124,6 +140,7 @@ alter table public.subscriptions enable row level security;
 alter table public.payments enable row level security;
 alter table public.newsletter_subscribers enable row level security;
 alter table public.search_alerts enable row level security;
+alter table public.news_articles enable row level security;
 
 -- =====================
 -- CREATE POLICIES
@@ -187,6 +204,13 @@ create policy "Users can update own alerts" on public.search_alerts
 create policy "Users can delete own alerts" on public.search_alerts
   for delete using (auth.uid() = user_id);
 
+-- News articles policies (public read, service role write)
+create policy "Anyone can view news" on public.news_articles
+  for select using (true);
+
+create policy "Admins can manage news" on public.news_articles
+  for all using (true);
+
 -- =====================
 -- FUNCTIONS & TRIGGERS
 -- =====================
@@ -218,3 +242,5 @@ create index if not exists subscriptions_mollie_id_idx on public.subscriptions(m
 create index if not exists payments_user_id_idx on public.payments(user_id);
 create index if not exists payments_mollie_id_idx on public.payments(mollie_payment_id);
 create index if not exists newsletter_email_idx on public.newsletter_subscribers(email);
+create index if not exists news_published_at_idx on public.news_articles(published_at desc);
+create index if not exists news_category_idx on public.news_articles(category);

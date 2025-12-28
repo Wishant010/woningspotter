@@ -1,105 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageTransition } from '../components/PageTransition';
-import { Calendar, Clock, ArrowRight, TrendingUp, Home, Gavel, Building2, Landmark, CheckCircle, Loader2, Mail } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, TrendingUp, Home, Gavel, Building2, Landmark, CheckCircle, Loader2, Mail, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface NewsArticle {
   id: string;
   title: string;
-  excerpt: string;
+  summary: string;
+  content: string | null;
   category: string;
-  categoryIcon: React.ElementType;
-  date: string;
-  readTime: string;
-  image: string;
-  featured?: boolean;
+  source_url: string | null;
+  image_url: string | null;
+  is_featured: boolean;
+  published_at: string;
+  created_at: string;
 }
 
-const newsArticles: NewsArticle[] = [
-  {
-    id: '1',
-    title: 'Hypotheekrente daalt verder: wat betekent dit voor kopers?',
-    excerpt: 'De gemiddelde hypotheekrente is deze maand opnieuw gedaald naar 3,6%. Experts verwachten dat deze trend zich voortzet, wat goed nieuws is voor starters op de woningmarkt.',
-    category: 'Hypotheek',
-    categoryIcon: Landmark,
-    date: '7 dec 2025',
-    readTime: '4 min',
-    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=500&fit=crop',
-    featured: true,
-  },
-  {
-    id: '2',
-    title: 'Nieuwe wet: makelaars moeten energielabel tonen bij bezichtiging',
-    excerpt: 'Sinds januari zijn makelaars verplicht om het energielabel prominent te tonen tijdens bezichtigingen. Dit moet kopers helpen een betere inschatting te maken van energiekosten.',
-    category: 'Regelgeving',
-    categoryIcon: Gavel,
-    date: '6 dec 2025',
-    readTime: '3 min',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=500&fit=crop',
-  },
-  {
-    id: '3',
-    title: 'Huizenprijzen stijgen met 4,2% in laatste kwartaal',
-    excerpt: 'Het CBS meldt een stijging van 4,2% in huizenprijzen vergeleken met vorig jaar. Vooral in de Randstad blijven de prijzen stijgen door aanhoudende krapte op de markt.',
-    category: 'Marktanalyse',
-    categoryIcon: TrendingUp,
-    date: '5 dec 2025',
-    readTime: '5 min',
-    image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800&h=500&fit=crop',
-  },
-  {
-    id: '4',
-    title: 'Amsterdam bouwt 12.000 nieuwe woningen in 2026',
-    excerpt: 'De gemeente Amsterdam heeft plannen aangekondigd voor de bouw van 12.000 nieuwe woningen, waarvan 40% sociale huur. De eerste projecten starten in het voorjaar.',
-    category: 'Nieuwbouw',
-    categoryIcon: Building2,
-    date: '4 dec 2025',
-    readTime: '4 min',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=500&fit=crop',
-  },
-  {
-    id: '5',
-    title: 'Tips voor het kopen van je eerste woning in 2026',
-    excerpt: 'Ben je van plan om volgend jaar je eerste woning te kopen? Wij geven je de beste tips om goed voorbereid de woningmarkt op te gaan en je kansen te vergroten.',
-    category: 'Tips',
-    categoryIcon: Home,
-    date: '3 dec 2025',
-    readTime: '6 min',
-    image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=500&fit=crop',
-  },
-  {
-    id: '6',
-    title: 'NVM: Aantal woningverkopen stijgt met 12%',
-    excerpt: 'De Nederlandse Vereniging van Makelaars meldt een stijging van 12% in het aantal woningverkopen. De toegenomen activiteit wordt toegeschreven aan dalende rentes.',
-    category: 'Marktanalyse',
-    categoryIcon: TrendingUp,
-    date: '2 dec 2025',
-    readTime: '3 min',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=500&fit=crop',
-  },
-  {
-    id: '7',
-    title: 'Verduurzaming: subsidies voor woningisolatie verlengd tot 2027',
-    excerpt: 'De overheid heeft besloten de subsidieregeling voor woningisolatie te verlengen tot 2027. Huiseigenaren kunnen tot €6.000 subsidie aanvragen voor isolatiemaatregelen.',
-    category: 'Regelgeving',
-    categoryIcon: Gavel,
-    date: '1 dec 2025',
-    readTime: '4 min',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop',
-  },
-  {
-    id: '8',
-    title: 'Rotterdam investeert €600 miljoen in betaalbare woningen',
-    excerpt: 'De gemeente Rotterdam maakt een grote investering in betaalbare woningen. Het plan omvat renovatie van bestaande woningen en nieuwbouw in verschillende wijken.',
-    category: 'Nieuwbouw',
-    categoryIcon: Building2,
-    date: '29 nov 2025',
-    readTime: '5 min',
-    image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=500&fit=crop',
-  },
-];
+const categoryIcons: Record<string, React.ElementType> = {
+  'Marktanalyse': TrendingUp,
+  'Nieuwbouw': Building2,
+  'Hypotheek': Landmark,
+  'Regelgeving': Gavel,
+  'Tips': Home,
+};
 
 const categories = [
   { name: 'Alle', value: 'all' },
@@ -110,20 +35,85 @@ const categories = [
   { name: 'Tips', value: 'Tips' },
 ];
 
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const day = date.getDate();
+  const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+function estimateReadTime(summary: string, content: string | null): string {
+  const text = summary + (content || '');
+  const wordCount = text.split(/\s+/).length;
+  const minutes = Math.max(2, Math.ceil(wordCount / 200));
+  return `${minutes} min`;
+}
+
+function getSourceName(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const hostname = new URL(url).hostname.replace('www.', '');
+    const sourceMap: Record<string, string> = {
+      'nos.nl': 'NOS',
+      'nvm.nl': 'NVM',
+      'funda.nl': 'Funda',
+      'rabobank.nl': 'Rabobank',
+      'rtlnieuws.nl': 'RTL Nieuws',
+      'nu.nl': 'NU.nl',
+      'ad.nl': 'AD',
+      'telegraaf.nl': 'De Telegraaf',
+      'volkskrant.nl': 'De Volkskrant',
+      'parool.nl': 'Het Parool',
+    };
+    return sourceMap[hostname] || hostname;
+  } catch {
+    return null;
+  }
+}
+
 export default function NieuwsPage() {
+  const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    async function fetchNews() {
+      try {
+        setIsLoading(true);
+        setFetchError(null);
+        const response = await fetch('/api/news');
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Fout bij ophalen nieuws');
+        }
+
+        setNewsArticles(data.articles || []);
+      } catch (err) {
+        console.error('Error fetching news:', err);
+        setFetchError(err instanceof Error ? err.message : 'Er ging iets mis');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchNews();
+  }, []);
+
   // Filter articles based on selected category
   const filteredArticles = selectedCategory === 'all'
     ? newsArticles
     : newsArticles.filter((a) => a.category === selectedCategory);
 
-  const featuredArticle = filteredArticles.find((a) => a.featured);
-  const regularArticles = filteredArticles.filter((a) => !a.featured);
+  const featuredArticle = filteredArticles.find((a) => a.is_featured);
+  const regularArticles = filteredArticles.filter((a) => !a.is_featured);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,6 +141,8 @@ export default function NieuwsPage() {
       setIsSubmitting(false);
     }
   };
+
+  const defaultImage = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=500&fit=crop';
 
   return (
     <PageTransition>
@@ -183,111 +175,177 @@ export default function NieuwsPage() {
             ))}
           </div>
 
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 text-[#FF7A00] animate-spin mb-4" />
+              <p className="text-white/50">Nieuws laden...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {fetchError && !isLoading && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-16 h-16 mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-red-400" />
+              </div>
+              <p className="text-white/70 mb-2">Er ging iets mis</p>
+              <p className="text-white/40 text-sm">{fetchError}</p>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && !fetchError && filteredArticles.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-16 h-16 mb-4 bg-white/10 rounded-full flex items-center justify-center">
+                <Mail className="w-8 h-8 text-white/40" />
+              </div>
+              <p className="text-white/70 mb-2">Geen nieuws gevonden</p>
+              <p className="text-white/40 text-sm">
+                {selectedCategory === 'all'
+                  ? 'Er zijn nog geen nieuwsartikelen beschikbaar.'
+                  : 'Geen artikelen in deze categorie.'}
+              </p>
+            </div>
+          )}
+
           {/* Featured Article */}
-          {featuredArticle && (
+          {!isLoading && !fetchError && featuredArticle && (
             <div className="mb-10">
-              <div className="glass rounded-2xl overflow-hidden group cursor-pointer hover:bg-white/10 transition-all">
-                <div className="grid grid-cols-1 md:grid-cols-2">
-                  <div className="relative h-64 md:h-auto overflow-hidden">
-                    <img
-                      src={featuredArticle.image}
-                      alt={featuredArticle.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-[#FF7A00] rounded-full text-xs font-semibold">
-                        Uitgelicht
-                      </span>
+              <a
+                href={featuredArticle.source_url || '#'}
+                target={featuredArticle.source_url ? '_blank' : undefined}
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <div className="glass rounded-2xl overflow-hidden group cursor-pointer hover:bg-white/10 transition-all">
+                  <div className="grid grid-cols-1 md:grid-cols-2">
+                    <div className="relative h-64 md:h-auto overflow-hidden">
+                      <img
+                        src={featuredArticle.image_url || defaultImage}
+                        alt={featuredArticle.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = defaultImage;
+                        }}
+                      />
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 bg-[#FF7A00] rounded-full text-xs font-semibold">
+                          Uitgelicht
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-6 md:p-8 flex flex-col justify-center">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="flex items-center gap-1.5 text-[#FF7A00] text-sm font-medium">
-                        <featuredArticle.categoryIcon className="w-4 h-4" />
-                        {featuredArticle.category}
-                      </span>
-                      <span className="text-white/30">•</span>
-                      <span className="flex items-center gap-1 text-white/50 text-sm">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {featuredArticle.date}
-                      </span>
-                    </div>
-                    <h2 className="text-2xl font-bold mb-3 group-hover:text-[#FF7A00] transition-colors">
-                      {featuredArticle.title}
-                    </h2>
-                    <p className="text-white/60 mb-4 line-clamp-3">
-                      {featuredArticle.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1 text-white/40 text-sm">
-                        <Clock className="w-3.5 h-3.5" />
-                        {featuredArticle.readTime} leestijd
-                      </span>
-                      <span className="flex items-center gap-1 text-[#FF7A00] text-sm font-medium group-hover:gap-2 transition-all">
-                        Lees meer <ArrowRight className="w-4 h-4" />
-                      </span>
+                    <div className="p-6 md:p-8 flex flex-col justify-center">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="flex items-center gap-1.5 text-[#FF7A00] text-sm font-medium">
+                          {categoryIcons[featuredArticle.category] && (
+                            (() => {
+                              const Icon = categoryIcons[featuredArticle.category];
+                              return <Icon className="w-4 h-4" />;
+                            })()
+                          )}
+                          {featuredArticle.category}
+                        </span>
+                        <span className="text-white/30">•</span>
+                        <span className="flex items-center gap-1 text-white/50 text-sm">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {formatDate(featuredArticle.published_at)}
+                        </span>
+                      </div>
+                      <h2 className="text-2xl font-bold mb-3 group-hover:text-[#FF7A00] transition-colors">
+                        {featuredArticle.title}
+                      </h2>
+                      <p className="text-white/60 mb-4 line-clamp-3">
+                        {featuredArticle.summary}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-sm">
+                          <span className="flex items-center gap-1 text-white/40">
+                            <Clock className="w-3.5 h-3.5" />
+                            {estimateReadTime(featuredArticle.summary, featuredArticle.content)} leestijd
+                          </span>
+                          {getSourceName(featuredArticle.source_url) && (
+                            <span className="text-[#FF7A00] font-medium">
+                              Bron: {getSourceName(featuredArticle.source_url)}
+                            </span>
+                          )}
+                        </div>
+                        <span className="flex items-center gap-1 text-[#FF7A00] text-sm font-medium group-hover:gap-2 transition-all">
+                          Lees artikel <ArrowRight className="w-4 h-4" />
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </a>
             </div>
           )}
 
           {/* Articles Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {regularArticles.map((article) => {
-              const Icon = article.categoryIcon;
-              return (
-                <article
-                  key={article.id}
-                  className="glass rounded-xl overflow-hidden group cursor-pointer hover:bg-white/10 transition-all"
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={article.image}
-                      alt={article.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-3 left-3">
-                      <span className="flex items-center gap-1.5 px-2.5 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">
-                        <Icon className="w-3.5 h-3.5 text-[#FF7A00]" />
-                        {article.category}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <div className="flex items-center gap-3 mb-2 text-xs text-white/50">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {article.date}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {article.readTime}
-                      </span>
-                    </div>
-                    <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-[#FF7A00] transition-colors">
-                      {article.title}
-                    </h3>
-                    <p className="text-white/50 text-sm line-clamp-2 mb-3">
-                      {article.excerpt}
-                    </p>
-                    <span className="flex items-center gap-1 text-[#FF7A00] text-sm font-medium group-hover:gap-2 transition-all">
-                      Lees meer <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          {/* Load More */}
-          <div className="mt-10 text-center">
-            <button className="px-6 py-3 glass rounded-xl font-medium hover:bg-white/10 transition-all">
-              Meer artikelen laden
-            </button>
-          </div>
+          {!isLoading && !fetchError && regularArticles.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {regularArticles.map((article) => {
+                const Icon = categoryIcons[article.category] || TrendingUp;
+                return (
+                  <a
+                    key={article.id}
+                    href={article.source_url || '#'}
+                    target={article.source_url ? '_blank' : undefined}
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <article className="glass rounded-xl overflow-hidden group cursor-pointer hover:bg-white/10 transition-all h-full">
+                      <div className="relative h-48 overflow-hidden">
+                        <img
+                          src={article.image_url || defaultImage}
+                          alt={article.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = defaultImage;
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        <div className="absolute bottom-3 left-3">
+                          <span className="flex items-center gap-1.5 px-2.5 py-1 bg-black/50 backdrop-blur-sm rounded-full text-xs font-medium">
+                            <Icon className="w-3.5 h-3.5 text-[#FF7A00]" />
+                            {article.category}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-5">
+                        <div className="flex items-center gap-3 mb-2 text-xs text-white/50">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(article.published_at)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {estimateReadTime(article.summary, article.content)}
+                          </span>
+                          {getSourceName(article.source_url) && (
+                            <span className="text-[#FF7A00]">
+                              {getSourceName(article.source_url)}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-[#FF7A00] transition-colors">
+                          {article.title}
+                        </h3>
+                        <p className="text-white/50 text-sm line-clamp-2 mb-3">
+                          {article.summary}
+                        </p>
+                        <span className="flex items-center gap-1 text-[#FF7A00] text-sm font-medium group-hover:gap-2 transition-all">
+                          Lees artikel <ArrowRight className="w-4 h-4" />
+                        </span>
+                      </div>
+                    </article>
+                  </a>
+                );
+              })}
+            </div>
+          )}
 
           {/* Newsletter Signup */}
           <div className="mt-16 glass rounded-2xl p-8 text-center">
