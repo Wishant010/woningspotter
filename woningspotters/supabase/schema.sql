@@ -18,6 +18,7 @@ create table if not exists public.profiles (
   mollie_customer_id text,
   searches_today integer default 0,
   last_search_date date,
+  is_admin boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -79,6 +80,19 @@ create table if not exists public.newsletter_subscribers (
   is_active boolean default true
 );
 
+-- Search alerts table (for Pro users)
+create table if not exists public.search_alerts (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  name text not null,
+  search_criteria jsonb not null,
+  is_active boolean default true,
+  last_checked_at timestamp with time zone,
+  last_results_count integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- =====================
 -- DROP EXISTING POLICIES (after tables exist)
 -- =====================
@@ -95,6 +109,10 @@ drop policy if exists "Users can view own payments" on public.payments;
 drop policy if exists "Service role can manage payments" on public.payments;
 drop policy if exists "Anyone can subscribe to newsletter" on public.newsletter_subscribers;
 drop policy if exists "Users can view own subscription" on public.newsletter_subscribers;
+drop policy if exists "Users can view own alerts" on public.search_alerts;
+drop policy if exists "Users can insert own alerts" on public.search_alerts;
+drop policy if exists "Users can update own alerts" on public.search_alerts;
+drop policy if exists "Users can delete own alerts" on public.search_alerts;
 
 -- =====================
 -- ENABLE ROW LEVEL SECURITY
@@ -105,6 +123,7 @@ alter table public.search_history enable row level security;
 alter table public.subscriptions enable row level security;
 alter table public.payments enable row level security;
 alter table public.newsletter_subscribers enable row level security;
+alter table public.search_alerts enable row level security;
 
 -- =====================
 -- CREATE POLICIES
@@ -154,6 +173,19 @@ create policy "Anyone can subscribe to newsletter" on public.newsletter_subscrib
 
 create policy "Users can view own subscription" on public.newsletter_subscribers
   for select using (true);
+
+-- Search alerts policies
+create policy "Users can view own alerts" on public.search_alerts
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own alerts" on public.search_alerts
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own alerts" on public.search_alerts
+  for update using (auth.uid() = user_id);
+
+create policy "Users can delete own alerts" on public.search_alerts
+  for delete using (auth.uid() = user_id);
 
 -- =====================
 -- FUNCTIONS & TRIGGERS

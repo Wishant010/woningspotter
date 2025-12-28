@@ -20,18 +20,27 @@ export function getMollieClient(): MollieClient {
 export const PLANS = {
   pro: {
     name: 'Pro',
-    amount: '9.00',
+    amount: '7.00',
     currency: 'EUR',
     interval: '1 month',
     description: 'WoningSpotters Pro - Maandelijks abonnement',
+    searchLimit: 30,
   },
   ultra: {
     name: 'Ultra',
-    amount: '29.00',
+    amount: '15.00',
     currency: 'EUR',
     interval: '1 month',
     description: 'WoningSpotters Ultra - Maandelijks abonnement',
+    searchLimit: 100,
   },
+} as const;
+
+// Search limits per tier
+export const SEARCH_LIMITS = {
+  free: 5,
+  pro: 30,
+  ultra: 100,
 } as const;
 
 export type PlanType = keyof typeof PLANS;

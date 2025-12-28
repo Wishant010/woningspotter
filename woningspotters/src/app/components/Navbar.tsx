@@ -153,6 +153,14 @@ export function Navbar() {
                     {/* Menu items */}
                     <div className="py-1">
                       <Link
+                        href="/account"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all"
+                      >
+                        <User className="w-4 h-4" />
+                        Mijn account
+                      </Link>
+                      <Link
                         href="/favorites"
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-3 px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all"
@@ -172,7 +180,7 @@ export function Navbar() {
                       )}
                       {subscriptionTier !== 'free' && (
                         <Link
-                          href="/pricing"
+                          href="/account"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all"
                         >

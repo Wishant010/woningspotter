@@ -6,6 +6,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { TransitionProvider } from './components/TransitionProvider';
 import { AuthProvider } from '@/context/AuthContext';
+import { FavoritesProvider } from '@/context/FavoritesContext';
 import FloatingLines from './components/FloatingLines';
 import CookieConsent from './components/CookieConsent';
 
@@ -62,26 +63,28 @@ export default function RootLayout({
         </noscript>
 
         <AuthProvider>
-          {/* Animated background */}
-          <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-            <FloatingLines />
-          </div>
+          <FavoritesProvider>
+            {/* Animated background */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+              <FloatingLines />
+            </div>
 
-          {/* Fixed Navbar */}
-          <Navbar />
+            {/* Fixed Navbar */}
+            <Navbar />
 
-          {/* Main content */}
-          <main className="relative z-10 pt-14 flex-1">
-            <TransitionProvider>
-              {children}
-            </TransitionProvider>
-          </main>
+            {/* Main content */}
+            <main className="relative z-10 pt-14 flex-1">
+              <TransitionProvider>
+                {children}
+              </TransitionProvider>
+            </main>
 
-          {/* Footer */}
-          <Footer />
+            {/* Footer */}
+            <Footer />
 
-          {/* Cookie Consent Banner */}
-          <CookieConsent />
+            {/* Cookie Consent Banner */}
+            <CookieConsent />
+          </FavoritesProvider>
         </AuthProvider>
       </body>
     </html>

@@ -1,0 +1,44 @@
+# Environment files - NEVER commit these
+.env
+.env.local
+.env.development
+.env.production
+.env*.local
+*.env
+**/.env
+**/.env.local
+**/.env.*
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+*.pem

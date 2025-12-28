@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Woning } from '@/types';
-import { MapPin, Maximize, BedDouble, ExternalLink, Zap } from 'lucide-react';
+import { MapPin, Maximize, BedDouble, ExternalLink, Zap, Heart } from 'lucide-react';
+import { useFavorites } from '@/context/FavoritesContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface WoningCardProps {
   woning: Woning;
@@ -11,12 +14,43 @@ interface WoningCardProps {
 
 export function WoningCard({ woning, index = 0 }: WoningCardProps) {
   const router = useRouter();
+  const { user } = useAuth();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const [isToggling, setIsToggling] = useState(false);
+  const [showUpgradeToast, setShowUpgradeToast] = useState(false);
+
+  const isFav = isFavorite(woning.url);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Sla de woning data op in sessionStorage zodat de detail pagina het kan ophalen
     sessionStorage.setItem(`woning_${woning.id}`, JSON.stringify(woning));
     router.push(`/woning/${woning.id}`);
+  };
+
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!user) {
+      router.push('/login?redirect=' + encodeURIComponent(window.location.pathname));
+      return;
+    }
+
+    if (isToggling) return;
+    setIsToggling(true);
+
+    try {
+      if (isFav) {
+        await removeFavorite(woning.url);
+      } else {
+        const result = await addFavorite(woning);
+        if (result.requiresUpgrade) {
+          setShowUpgradeToast(true);
+          setTimeout(() => setShowUpgradeToast(false), 3000);
+        }
+      }
+    } finally {
+      setIsToggling(false);
+    }
   };
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('nl-NL', {
@@ -74,12 +108,26 @@ export function WoningCard({ woning, index = 0 }: WoningCardProps) {
           )}
         </div>
 
-        {/* External link icon */}
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center">
-            <ExternalLink className="w-4 h-4 text-white" />
+        {/* Favorite button */}
+        <button
+          onClick={handleFavoriteClick}
+          disabled={isToggling}
+          className={`absolute top-3 right-3 w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
+            isFav
+              ? 'bg-[#e94560] text-white'
+              : 'bg-black/40 backdrop-blur-md text-white/70 hover:bg-black/60 hover:text-white'
+          } ${isToggling ? 'opacity-50' : ''}`}
+          aria-label={isFav ? 'Verwijder uit favorieten' : 'Voeg toe aan favorieten'}
+        >
+          <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+        </button>
+
+        {/* Upgrade toast */}
+        {showUpgradeToast && (
+          <div className="absolute top-14 right-3 bg-black/90 backdrop-blur-md text-white text-xs px-3 py-2 rounded-lg shadow-lg animate-fade-in">
+            Upgrade naar Pro om favorieten op te slaan
           </div>
-        </div>
+        )}
 
         {/* Price overlay on image */}
         <div className="absolute bottom-3 left-3">
